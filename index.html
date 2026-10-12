@@ -121,6 +121,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .stitle{padding:14px 48px;font-size:19px;font-weight:700;text-align:center;background:#fff}
 .art{padding:18px;background:#fff}
 .art h1{font-size:23px;line-height:1.45;margin:6px 0 12px}
+.art h2{font-size:19px;line-height:1.5;margin:20px 0 8px;color:#1a5c2e}
 .art .meta{color:#576b95;font-size:14px}
 .art .meta .dt{color:#999;margin-left:10px}
 .aibox{background:#f7f8fa;border-radius:10px;padding:12px;margin:14px 0;font-size:14px;color:#555;display:flex;gap:8px;align-items:center}
@@ -292,7 +293,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="upcard green" onclick="pickFile('short')">上傳短片<small>最大 500MB</small></div>
     </div>
     <button class="recbtn" onclick="pickFile('rec')">即拍即傳</button>
-    <div class="agree"><span class="ck">✓</span> 我已閱讀並同意《軟件許可及服務協議》及《私隱政策》</div>
+    <div class="agree"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="up-agree" style="width:18px;height:18px;accent-color:#07c160"><span>我已閱讀並同意《<a href="javascript:go('s-disclaimer')" style="color:#07c160" onclick="event.stopPropagation()">使用條款及私隱政策</a>》，並確認有權上傳此內容</span></label></div>
   </div>
   <div class="pubbox" id="pubbox">
     <video id="preview" controls playsinline></video>
@@ -385,7 +386,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="mi" onclick="go('s-earnings')">💰 收益 <span class="arr">›</span></div>
     <div class="mi" onclick="go('s-comments')">💬 留言管理 <span class="arr">›</span></div>
     <div class="mi" onclick="go('s-help')">❓ 幫助與意見 <span class="arr">›</span></div>
-    <div class="mi" onclick="go('s-disclaimer')">📜 免責聲明及版權條款 <span class="arr">›</span></div>
+    <div class="mi" onclick="go('s-disclaimer')">📜 使用條款及私隱政策 <span class="arr">›</span></div>
     <div class="mi" onclick="copyProfileLink()">🔗 攞個人主頁連結 <span class="arr">›</span></div>
     <div class="mi" onclick="toggleSetting('shareOthers')">📤 分享時附上我嘅主頁連結 <span class="tick" id="tick-share"></span></div>
     <div class="mi" onclick="toggleSetting('notifyFollow')">🔔 接收關注更新通知 <span class="tick" id="tick-notify"></span></div>
@@ -420,6 +421,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="alabel" style="margin-top:14px">電郵 <span class="optnote">（選填）</span></div>
       <input id="auth-email2" class="ainput" type="email" autocomplete="email" placeholder="選填，方便日後聯絡你">
       <button class="abtn" id="phone-go" onclick="phoneAuth()">登入／註冊</button>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-top:14px;font-size:13px;color:#666;text-align:left;cursor:pointer"><input type="checkbox" id="auth-agree" style="margin-top:2px;min-width:18px;height:18px;accent-color:#07c160"><span>我已年滿 18 歲，並已閱讀同意《<a href="javascript:go('s-disclaimer')" style="color:#07c160">使用條款及私隱政策</a>》</span></label>
       <div style="text-align:center;margin-top:12px;font-size:12px;color:#bbb">未註冊過嘅電話號碼會自動開新帳號 · 唔使收 SMS</div>
     </div>
     <div id="auth-email-box" style="display:none">
@@ -432,6 +434,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="alabel" style="margin-top:12px">密碼</div>
       <input id="auth-pass" class="ainput" type="password" placeholder="至少6個字" autocomplete="current-password">
       <button class="abtn" id="auth-go" onclick="doAuth()">登入</button>
+      <label id="auth-agree-em-row" style="display:none;gap:8px;align-items:flex-start;margin-top:14px;font-size:13px;color:#666;text-align:left;cursor:pointer"><input type="checkbox" id="auth-agree-em" style="margin-top:2px;min-width:18px;height:18px;accent-color:#07c160"><span>我已年滿 18 歲，並已閱讀同意《<a href="javascript:go('s-disclaimer')" style="color:#07c160">使用條款及私隱政策</a>》</span></label>
       <div style="text-align:center;margin-top:16px;font-size:14px;color:#888">
         <span id="auth-switch-q">未有帳號？</span>
         <a href="javascript:toggleAuthMode()" id="auth-switch" style="color:#07c160;font-weight:700;text-decoration:none">立即註冊</a>
@@ -465,24 +468,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div style="height:20px"></div>
 </div>
 
-<!-- ============ 免責聲明及版權條款 ============ -->
+<!-- ============ 使用條款及私隱政策 ============ -->
 <div class="screen" id="s-disclaimer">
   <div style="position:relative;background:#fff">
     <button class="backbtn" onclick="go('s-profile')">‹</button>
-    <div class="topbar" style="border:none">免責聲明及版權條款</div>
+    <div class="topbar" style="border:none">使用條款及私隱政策</div>
   </div>
   <div class="art">
-    <h1>免責聲明</h1>
-    <p class="body">1. 「講圈」現為演示版，所有功能及內容僅作展示用途。</p>
-    <p class="body">2. 平台上嘅短片、文章及留言由用戶提供，內容只代表發佈者個人意見，同本平台立場無關。</p>
-    <p class="body">3. 本平台唔保證內容嘅準確性同完整性，用戶須自行判斷；因使用本平台而引致嘅任何損失，本平台概不負責。</p>
-    <p class="body">4. 演示版資料只儲存喺你部手機，唔會上傳去任何伺服器。</p>
-    <h1 style="margin-top:26px">版權條款</h1>
-    <p class="body">1. 上傳內容即代表你確認擁有該內容嘅版權，或已獲版權持有人授權分享，並同意授權本平台展示該內容。</p>
-    <p class="body">2. 請勿上傳侵犯他人版權、私隱或其他權利嘅內容，包括未經授權嘅影片、音樂、圖片同文字。</p>
-    <p class="body">3. 如發現平台上有侵犯你版權嘅內容，請聯絡我哋並提供證明，我哋會盡快移除。</p>
-    <p class="body">4. 違規內容一經發現會被移除，嚴重者會被停用帳號。</p>
-    <p class="body" style="color:#999;font-size:14px;margin-top:20px">最後更新：2026年9月28日</p>
+    <h1>使用條款</h1>
+    <p class="body" style="color:#999;font-size:14px">最後更新：2026年10月11日｜以下為一般條款，不構成法律意見</p>
+    <h2>1. 接受條款</h2>
+    <p class="body">註冊或使用「講圈」（KongTalk）即表示你已年滿 18 歲，並已閱讀、明白及同意本使用條款及私隱政策。如你不同意，請勿使用本平台。</p>
+    <h2>2. 帳號</h2>
+    <p class="body">2.1 你可以用香港或內地電話號碼註冊帳號，須確保號碼真實有效。因使用他人號碼註冊而引起嘅糾紛，由你自行負責。</p>
+    <p class="body">2.2 請妥善保管登入密碼。因密碼洩露引致嘅損失，本平台概不負責。</p>
+    <p class="body">2.3 本平台不設 SMS 驗證，忘記密碼將無法重設。請牢記你的密碼。</p>
+    <h2>3. 內容規範</h2>
+    <p class="body">你不得上傳、發佈或傳播以下內容：</p>
+    <p class="body">（a）淫褻或不雅物品（包括色情內容）；<br>（b）兒童色情物品；<br>（c）侵犯他人版權、商標或其他知識產權嘅內容；<br>（d）誹謗、中傷他人嘅內容；<br>（e）未經同意披露他人個人資料（起底）；<br>（f）仇恨言論、暴力、血腥或鼓吹自殘嘅內容；<br>（g）詐騙、虛假資訊；<br>（h）任何違反香港法例嘅內容。</p>
+    <h2>4. 平台權利：主動刪除及免責</h2>
+    <p class="body"><b>4.1 本平台有權隨時、無需事先通知，刪除或屏蔽任何違反本條款或香港法例嘅內容，並有權暫停或終止違規用戶嘅帳號。</b></p>
+    <p class="body"><b>4.2 對於平台行使上述刪除、屏蔽、停權權利，本平台不承擔任何責任，亦無需向用戶作出賠償或解釋。</b></p>
+    <p class="body">4.3 如發現兒童色情內容，本平台會即時移除並向執法機關舉報。</p>
+    <p class="body">4.4 重複違規者，其帳號可被永久停用。</p>
+    <h2>5. 用戶保證</h2>
+    <p class="body">5.1 你保證上傳嘅內容由你原創，或已獲版權持有人授權，並同意授權本平台展示該內容。</p>
+    <p class="body">5.2 你保證內容不違反本條款第 3 條及香港法例。因你的內容引起嘅法律責任，由你自行承擔。</p>
+    <h2>6. 版權舉報</h2>
+    <p class="body">如你發現平台上有侵犯你版權嘅內容，請聯絡我哋嘅版權代理人並提供證明（作品資料、侵權連結、聯絡方法），我哋會盡快處理並移除涉案內容。</p>
+    <p class="body">版權代理人聯絡：（待定）</p>
+    <h2>7. 舉報機制</h2>
+    <p class="body">如發現違規內容（色情不雅、侵權、誹謗、起底或其他），請透過平台內舉報功能或聯絡我哋，我哋會盡快跟進處理。</p>
+    <h2>8. 免責聲明</h2>
+    <p class="body">8.1 平台上嘅內容由用戶提供，只代表發佈者個人意見，同本平台立場無關。</p>
+    <p class="body">8.2 本平台唔保證內容嘅準確性同完整性，亦唔保證服務不受中斷；因使用本平台而引致嘅任何損失，本平台概不負責。</p>
+    <h2>9. 條款修改及準據法</h2>
+    <p class="body">本平台可隨時修改本條款，修改後繼續使用即表示同意。本條款受香港法例管轄。</p>
+
+    <h1 style="margin-top:26px">私隱政策</h1>
+    <h2>1. 收集嘅資料</h2>
+    <p class="body">我哋收集以下資料：電話號碼（註冊用）、暱稱及個人簡介、你上傳嘅影片／文章／圖片、裝置及使用數據。</p>
+    <h2>2. 用途</h2>
+    <p class="body">上述資料只用於：帳號管理、內容展示、維持服務運作。電話號碼不會用作直銷用途，亦不會出售給第三方。</p>
+    <h2>3. 資料儲存及轉交</h2>
+    <p class="body">影片儲存於 Cloudflare，帳號及內容數據儲存於 Supabase（伺服器位於美國）。除法律要求外，我哋不會向第三方披露你的個人資料。</p>
+    <h2>4. 保留及刪除</h2>
+    <p class="body">刪除帳號時，你嘅個人資料、影片、文章會一併刪除，不作保留。</p>
+    <h2>5. 保安</h2>
+    <p class="body">我哋採取合理技術措施保障資料安全；密碼經加密儲存，我哋無法查閱。</p>
+    <h2>6. 查閱及改正</h2>
+    <p class="body">你有權查閱及改正你的個人資料，可於「我」頁更改，或聯絡我哋處理。</p>
   </div>
   <div style="height:20px"></div>
 </div>
@@ -650,8 +685,8 @@ function renderFeed(){
   h+='<div class="vcard"><div class="vwrap" data-i="'+i+'" onclick="togglePlay(this)">'
    +mediaHTML(v)
    +'<div class="bigplay"></div></div>'
-   +'<div class="vov"><div class="vtitle">'+v.t+'</div>'
-   +'<div class="vauthor"><div class="avatar">'+v.av+'</div><span>'+v.a+'</span><span class="vplays">'+v.p+'</span></div></div>'
+   +'<div class="vov"><div class="vtitle">'+escHtml(v.t)+'</div>'
+   +'<div class="vauthor"><div class="avatar">'+escHtml(v.av)+'</div><span>'+escHtml(v.a)+'</span><span class="vplays">'+v.p+'</span></div></div>'
    +'<div class="vrail"><button class="rbtn" onclick="openShareV('+i+')">📤<small>分享</small></button></div></div>';
   if((i+1)%5===0) h+='<div class="vcard adslot"><div class="adph">📢 廣告預留位<div class="adsub">正式版可接 Google AdSense／Pangle 信息流廣告</div></div></div>';
  });
@@ -1000,7 +1035,7 @@ function renderWorks(){
  _myWorks.forEach(function(v,i){
   var thumb=(v.stream&&v.uid)?streamThumb(v.uid):("https://picsum.photos/seed/"+encodeURIComponent(v.av+v.t.length)+"/400/250");
   var del=(v.uid&&v.stream&&v.mine)?'<button class="delbtn" onclick="event.stopPropagation();delVideo(\''+v.uid+'\')">🗑</button>':"";
-  h+='<div class="work" onclick="playWork('+i+')"><div class="thumb"><img src="'+thumb+'"><span class="pbtn">▶</span><span class="dur">'+v.d+'</span>'+del+'</div><div class="wt">'+v.t+'</div></div>';
+  h+='<div class="work" onclick="playWork('+i+')"><div class="thumb"><img src="'+thumb+'"><span class="pbtn">▶</span><span class="dur">'+v.d+'</span>'+del+'</div><div class="wt">'+escHtml(v.t)+'</div></div>';
  });
  document.getElementById("works").innerHTML=h;
  refreshMyStats();
@@ -1228,6 +1263,8 @@ function startStreamUpload(file){
 }
 async function publishVideo(){
  if(_sb&&!_user){toast("請先登入或註冊先可以出片");go("s-auth");return;}
+ var ag=document.getElementById("up-agree");
+ if(ag&&!ag.checked){toast("請先剔選同意《使用條款及私隱政策》");return;}
  var t=document.getElementById("vtitle").value.trim()||"我嘅新短片";
  var aname=(_user&&_sbProfile&&_sbProfile.nickname)||_profile.name||"講圈用戶";
  var aav=(aname.trim().charAt(0))||"講";
@@ -1440,6 +1477,8 @@ async function phoneAuth(){
  var phone=normPhone();if(!phone)return;
  var pin=document.getElementById("auth-pin").value.replace(/\D/g,"");
  if(pin.length<6){toast("請輸入 6 位數字密碼");return;}
+ var ag0=document.getElementById("auth-agree");
+ if(ag0&&!ag0.checked){toast("請先剔選同意《使用條款及私隱政策》（須年滿 18 歲）");return;}
  var semail=phoneToEmail(phone);
  var btn=document.getElementById("phone-go");btn.disabled=true;btn.textContent="處理緊…";
  try{
@@ -1478,6 +1517,7 @@ function toggleAuthMode(){
  var reg=_authMode==="register";
  document.getElementById("auth-title").textContent=reg?"註冊講圈帳號":"登入講圈";
  document.getElementById("auth-nick-row").style.display=reg?"block":"none";
+ document.getElementById("auth-agree-em-row").style.display=reg?"flex":"none";
  document.getElementById("auth-go").textContent=reg?"註冊":"登入";
  document.getElementById("auth-switch-q").textContent=reg?"已有帳號？":"未有帳號？";
  document.getElementById("auth-switch").textContent=reg?"直接登入":"立即註冊";
@@ -1491,6 +1531,8 @@ async function doAuth(){
  try{
   if(_authMode==="register"){
    if(pass.length<6){toast("密碼至少6個字");return;}
+   var ag1=document.getElementById("auth-agree-em");
+   if(ag1&&!ag1.checked){toast("請先剔選同意《使用條款及私隱政策》（須年滿 18 歲）");return;}
    var nick=document.getElementById("auth-nick-em").value.trim()||email.split("@")[0];
    var r=await _sb.auth.signUp({email:email,password:pass});
    if(r.error)throw r.error;
