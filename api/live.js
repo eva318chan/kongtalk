@@ -13,8 +13,8 @@ module.exports = async (req, res) => {
   res.status(200).json({
     ok: true,
     slots: [
+      { kind: "yt", ytId: "Eye2fQ3wqH8", t: "講圈官方直播", a: "講圈官方" },
       /* 範例（未啟用；啟用時刪走 // 並填真 ID）：
-      { kind: "yt", ytId: "PASTE_YOUTUBE_VIDEO_ID", t: "講圈官方直播", a: "講圈官方" },
       { kind: "cflive", liveUid: "PASTE_LIVE_INPUT_UID", t: "講圈官方直播", a: "講圈官方" },
       */
     ]
