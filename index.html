@@ -758,6 +758,8 @@ function playVwrap(w){
  bumpPlay(v);
  if(v&&(v.kind==="yt"||v.kind==="cflive")){
   /* 官方直播位：YouTube 嵌 / Cloudflare 直播 iframe（靜音自動播；撳片身暫停；直播唔會 ended，唔觸發自動播下一條） */
+  var im0=w.querySelector("iframe");
+  if(im0){livePlay(w,v);return;} /* 之前撳暫停過：直接繼續，唔重建 */
   var im=document.createElement("iframe");
   im.src=v.kind==="yt"
    ?"https://www.youtube.com/embed/"+encodeURIComponent(v.ytId)+"?autoplay=1&mute=1&rel=0&playsinline=1&enablejsapi=1"
@@ -875,6 +877,18 @@ window.addEventListener("message",function(e){
  }catch(err){}
 });
 /* 直播開聲／靜音：YouTube 經 postMessage（要 enablejsapi=1），Cloudflare 經 Stream SDK */
+function ytCmd(w,func){
+ try{var im=w.querySelector("iframe");if(im&&im.contentWindow)im.contentWindow.postMessage(JSON.stringify({event:"command",func:func,args:""}),"*");}catch(e){}
+}
+/* 直播暫停／繼續：唔拆 iframe，保住播放位置（之前拆走重建會由頭播） */
+function livePause(w,v){
+ if(v.kind==="yt")ytCmd(w,"pauseVideo");
+ else if(v.kind==="cflive"&&w._sp){try{w._sp.pause();}catch(e){}}
+}
+function livePlay(w,v){
+ if(v.kind==="yt")ytCmd(w,"playVideo");
+ else if(v.kind==="cflive"&&w._sp){try{w._sp.play();}catch(e){}}
+}
 function setLiveMuted(w,muted){
  var i=+w.getAttribute("data-i"),v=VIDEOS[i];
  w._liveMuted=muted;
@@ -890,6 +904,7 @@ function togglePlay(w){
  if(w.classList.contains("playing")){
   w.classList.remove("playing");
   if(v&&v.stream&&w._sp){try{w._sp.pause()}catch(e){}return;} /* SDK：真暫停，保留進度唔重建 */
+  if(v&&v.isLive){livePause(w,v);return;} /* 直播：真暫停唔拆 iframe，保住位置 */
   stopMedia(w);restoreMedia(w,v);return;
  }
  _tapPlay=true;playVwrap(w); /* 記低：今次係用戶親手撳播（手勢），可試有聲 */
