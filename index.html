@@ -243,6 +243,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 @keyframes liveblink{0%,100%{opacity:1}50%{opacity:.55}}
 .liveph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;font-size:15px;font-weight:700;letter-spacing:2px}
 .liveph .livedot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#e0245e;margin-right:8px;animation:liveblink 1.2s infinite}
+/* 直播觀眾數＋開聲掣 */
+.liveviewers{font-size:12px;color:#e0245e;font-weight:700;margin-left:8px;white-space:nowrap}
+.livespk{position:absolute;right:10px;bottom:10px;z-index:6;width:42px;height:42px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.livespk svg{width:22px;height:22px;fill:#fff}
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.85);color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:all .25s;pointer-events:none;max-width:86%;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -696,7 +700,7 @@ function renderFeed(){
    +mediaHTML(v)
    +'<div class="bigplay"></div></div>'
    +'<div class="vov"><div class="vtitle">'+(v.isLive?'<span class="livebadge">🔴 直播中</span>':"")+escHtml(v.t)+'</div>'
-   +'<div class="vauthor"><div class="avatar">'+escHtml(v.av)+'</div><span>'+escHtml(v.a)+'</span><span class="vplays">'+v.p+'</span></div></div>'
+   +'<div class="vauthor"><div class="avatar">'+escHtml(v.av)+'</div><span>'+escHtml(v.a)+'</span><span class="vplays">'+v.p+'</span>'+(v.isLive?'<span class="liveviewers" data-slot="'+escHtml(v.id)+'">👁 --</span>':"")+'</div></div>'
    +'<div class="vrail"><button class="rbtn" onclick="openShareV('+i+')">📤<small>分享</small></button></div></div>';
   if((i+1)%5===0) h+='<div class="vcard adslot"><div class="adph">📢 廣告預留位<div class="adsub">正式版可接 Google AdSense／Pangle 信息流廣告</div></div></div>';
  });
@@ -705,6 +709,8 @@ function renderFeed(){
 }
 function stopMedia(w){
  if(w._sp){try{w._sp.pause()}catch(e){}w._sp=null;}
+ if(w._liveCh){try{w._liveCh.unsubscribe();}catch(e){}w._liveCh=null;}
+ var sp=w.querySelector(".livespk");if(sp)sp.remove();
  if(w._vctrl&&w._vctrl.parentNode){w._vctrl.parentNode.removeChild(w._vctrl);}
  w._vctrl=null;
  if(w.parentNode)w.parentNode.classList.remove("has-ctrl");
@@ -726,7 +732,7 @@ function pauseAllV(){
 /* 播放計數：每條片每個 page-load 只計一次，畫面即時 +1，後端同步加 */
 var _bumped={};
 function bumpPlay(v){
- if(!v||_bumped[v.id||v.uid])return;
+ if(!v||v.isLive||_bumped[v.id||v.uid])return; /* 直播唔計播放數，睇觀眾數 */
  _bumped[v.id||v.uid]=1;
  var n=vPlaysNum(v)+1;v.p=n+"次播放";
  try{refreshMyStats();}catch(e){}
@@ -754,15 +760,23 @@ function playVwrap(w){
   /* 官方直播位：YouTube 嵌 / Cloudflare 直播 iframe（靜音自動播；撳片身暫停；直播唔會 ended，唔觸發自動播下一條） */
   var im=document.createElement("iframe");
   im.src=v.kind==="yt"
-   ?"https://www.youtube.com/embed/"+encodeURIComponent(v.ytId)+"?autoplay=1&mute=1&rel=0&playsinline=1"
+   ?"https://www.youtube.com/embed/"+encodeURIComponent(v.ytId)+"?autoplay=1&mute=1&rel=0&playsinline=1&enablejsapi=1"
    :"https://iframe.videodelivery.net/"+encodeURIComponent(v.liveUid)+"?autoplay=true&muted=true";
   im.style.cssText="position:absolute;inset:0;width:100%;height:100%;border:0";
   im.setAttribute("allow","accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture");
   im.setAttribute("allowfullscreen","true");
   w.insertBefore(im,w.firstChild);
+  if(v.kind==="cflive"&&window.Stream){try{w._sp=Stream(im);w._sp.muted=true;}catch(e){}}
   var catcher=document.createElement("div");catcher.className="vcatch";
   catcher.onclick=function(e){if(e)e.stopPropagation();togglePlay(w);};
   w.appendChild(catcher);
+  /* 開聲掣：浮喺右下角（YouTube 經 postMessage unmute；Stream 經 SDK） */
+  var spk=document.createElement("button");spk.className="livespk";spk.innerHTML=SVG_MUTE;
+  spk.setAttribute("aria-label","開聲／靜音");
+  spk.onclick=function(e){if(e)e.stopPropagation();setLiveMuted(w,w._liveMuted===false);};
+  w.appendChild(spk);w._liveMuted=true;
+  /* 觀眾統計：播緊先 join presence channel，停播即走，人數實時更新 */
+  w._liveCh=livePresence(v.id);
   return;
  }
  if(v&&v.stream&&v.uid){
@@ -860,6 +874,17 @@ window.addEventListener("message",function(e){
   }
  }catch(err){}
 });
+/* 直播開聲／靜音：YouTube 經 postMessage（要 enablejsapi=1），Cloudflare 經 Stream SDK */
+function setLiveMuted(w,muted){
+ var i=+w.getAttribute("data-i"),v=VIDEOS[i];
+ w._liveMuted=muted;
+ var btn=w.querySelector(".livespk");if(btn)btn.innerHTML=muted?SVG_MUTE:SVG_VOL;
+ try{
+  if(v&&v.kind==="yt"){var im=w.querySelector("iframe");if(im&&im.contentWindow)im.contentWindow.postMessage(JSON.stringify({event:"command",func:muted?"mute":"unMute",args:""}),"*");}
+  else if(v&&v.kind==="cflive"&&w._sp){w._sp.muted=muted;}
+ }catch(e){}
+ _wantSound=!muted;
+}
 function togglePlay(w){
  var i=+w.getAttribute("data-i"),v=VIDEOS[i];
  if(w.classList.contains("playing")){
@@ -1711,6 +1736,22 @@ async function loadLiveSlots(){
  }).filter(function(v){return (v.kind==="yt"&&v.ytId)||(v.kind==="cflive"&&v.liveUid);});
  VIDEOS=VIDEOS.filter(function(v){return !v.isLive;});
  VIDEOS=items.concat(VIDEOS);
+}
+/* 直播觀眾統計（Supabase Realtime Presence，唔使開表唔使新 API）：播緊先 join，停播即走；有人入／走即時更新張卡個數。cid 係隨機分頁 ID，唔含個人資料。 */
+function ktcid(){try{var c=sessionStorage.getItem("_ktcid");if(!c){c="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,10);sessionStorage.setItem("_ktcid",c);}return c;}catch(e){return "c"+Math.random().toString(36).slice(2);}}
+function livePresence(slot){
+ try{
+  if(!_sb||!_sb.channel)return null;
+  var ch=_sb.channel("live:"+slot);
+  ch.on("presence",{event:"sync"},function(){
+   var n=0,st=ch.presenceState();
+   for(var k in st){if(Object.prototype.hasOwnProperty.call(st,k))n++;}
+   var sels=document.querySelectorAll('.liveviewers[data-slot="'+slot+'"]');
+   for(var i=0;i<sels.length;i++)sels[i].textContent="👁 "+n+" 睇緊";
+  });
+  ch.subscribe(function(status){if(status==="SUBSCRIBED"){try{ch.track({cid:ktcid()});}catch(e){}}});
+  return ch;
+ }catch(e){return null;}
 }
 (async function(){
  renderAuthArea();
