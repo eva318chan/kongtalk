@@ -238,6 +238,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .adslot{background:#151515 !important;border:none;box-shadow:none !important;display:flex;align-items:center;justify-content:center}
 .adph{padding:34px 20px;text-align:center;color:#07c160;font-weight:700;font-size:16px;border:2px dashed #07c160;border-radius:14px;margin:0 30px}
 .adph .adsub{font-size:12px;color:#999;font-weight:400;margin-top:8px;line-height:1.6}
+/* 官方直播位：紅色 LIVE 徽章＋直播佔位圖 */
+.livebadge{display:inline-block;background:#e0245e;color:#fff;font-size:11px;font-weight:700;border-radius:4px;padding:2px 8px;margin-right:6px;letter-spacing:1px;animation:liveblink 1.6s infinite}
+@keyframes liveblink{0%,100%{opacity:1}50%{opacity:.55}}
+.liveph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;font-size:15px;font-weight:700;letter-spacing:2px}
+.liveph .livedot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#e0245e;margin-right:8px;animation:liveblink 1.2s infinite}
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.85);color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:all .25s;pointer-events:none;max-width:86%;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -674,8 +679,13 @@ var CREATORS=[
 var plays=134, shares=46, _shareBase=0;
 
 function streamThumb(uid){return "https://videodelivery.net/"+uid+"/thumbnails/thumbnail.jpg";}
-function videoThumb(v){return (v.stream&&v.uid)?streamThumb(v.uid):("https://picsum.photos/seed/"+encodeURIComponent(v.av+v.t.length)+"/800/450");}
+function videoThumb(v){
+ if(v.kind==="yt"&&v.ytId)return "https://i.ytimg.com/vi/"+encodeURIComponent(v.ytId)+"/hqdefault.jpg";
+ return (v.stream&&v.uid)?streamThumb(v.uid):("https://picsum.photos/seed/"+encodeURIComponent(v.av+v.t.length)+"/800/450");
+}
 function mediaHTML(v){
+ if(v.kind==="yt"&&v.ytId) return '<img class="sthumb" src="https://i.ytimg.com/vi/'+encodeURIComponent(v.ytId)+'/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">';
+ if(v.kind==="cflive"&&v.liveUid) return '<div class="liveph"><span class="livedot"></span>直播</div>';
  if(v.stream&&v.uid) return '<img class="sthumb" src="'+streamThumb(v.uid)+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">';
  return '<video src="'+v.src+'" preload="metadata" playsinline></video>';
 }
@@ -685,7 +695,7 @@ function renderFeed(){
   h+='<div class="vcard"><div class="vwrap" data-i="'+i+'" onclick="togglePlay(this)">'
    +mediaHTML(v)
    +'<div class="bigplay"></div></div>'
-   +'<div class="vov"><div class="vtitle">'+escHtml(v.t)+'</div>'
+   +'<div class="vov"><div class="vtitle">'+(v.isLive?'<span class="livebadge">🔴 直播中</span>':"")+escHtml(v.t)+'</div>'
    +'<div class="vauthor"><div class="avatar">'+escHtml(v.av)+'</div><span>'+escHtml(v.a)+'</span><span class="vplays">'+v.p+'</span></div></div>'
    +'<div class="vrail"><button class="rbtn" onclick="openShareV('+i+')">📤<small>分享</small></button></div></div>';
   if((i+1)%5===0) h+='<div class="vcard adslot"><div class="adph">📢 廣告預留位<div class="adsub">正式版可接 Google AdSense／Pangle 信息流廣告</div></div></div>';
@@ -703,7 +713,7 @@ function stopMedia(w){
  var vd=w.querySelector("video");if(vd)vd.pause();
 }
 function restoreMedia(w,v){
- var old=w.querySelector("iframe,video,img.sthumb");if(old)old.remove();
+ var old=w.querySelector("iframe,video,img.sthumb,.liveph");if(old)old.remove();
  var d=document.createElement("div");d.innerHTML=mediaHTML(v);
  w.insertBefore(d.firstChild,w.firstChild);
 }
@@ -740,6 +750,21 @@ function playVwrap(w){
  var i=+w.getAttribute("data-i"),v=VIDEOS[i];
  var _tp=_tapPlay;_tapPlay=false; /* 標記消耗：今次係咪用戶親手撳播 */
  bumpPlay(v);
+ if(v&&(v.kind==="yt"||v.kind==="cflive")){
+  /* 官方直播位：YouTube 嵌 / Cloudflare 直播 iframe（靜音自動播；撳片身暫停；直播唔會 ended，唔觸發自動播下一條） */
+  var im=document.createElement("iframe");
+  im.src=v.kind==="yt"
+   ?"https://www.youtube.com/embed/"+encodeURIComponent(v.ytId)+"?autoplay=1&mute=1&rel=0&playsinline=1"
+   :"https://iframe.videodelivery.net/"+encodeURIComponent(v.liveUid)+"?autoplay=true&muted=true";
+  im.style.cssText="position:absolute;inset:0;width:100%;height:100%;border:0";
+  im.setAttribute("allow","accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture");
+  im.setAttribute("allowfullscreen","true");
+  w.insertBefore(im,w.firstChild);
+  var catcher=document.createElement("div");catcher.className="vcatch";
+  catcher.onclick=function(e){if(e)e.stopPropagation();togglePlay(w);};
+  w.appendChild(catcher);
+  return;
+ }
  if(v&&v.stream&&v.uid){
   /* 之前撳暫停過嘅 SDK 播放器：直接繼續播（保留進度，唔重建） */
   if(w._sp){try{if(_tp&&_wantSound&&w._sp.muted)w._sp.muted=false;}catch(e){}try{w._sp.play()}catch(e){}try{if(w._syncVol)w._syncVol();}catch(e){}return;}
@@ -1675,6 +1700,18 @@ async function loadCommunity(){
  }catch(e){}
 }
 /* 開機：還原登入狀態＋載入社群影片（完成先一次過渲染，免半秒閃示範片） */
+/* 官方直播位：向 /api/live 拎平台設定，插到 feed 最頂並置頂。一般用戶上傳流程唔會產生 kind=yt/cflive，鎖死 official only。 */
+async function loadLiveSlots(){
+ var r=await fetch("/api/live");var j=await r.json();
+ var items=((j&&j.slots)||[]).map(function(s,i){
+  var v={id:"live"+i,kind:s.kind,t:s.t||"講圈官方直播",a:s.a||"講圈官方",av:"官",p:"直播中",d:"LIVE",isLive:true};
+  if(s.kind==="yt")v.ytId=s.ytId;
+  if(s.kind==="cflive")v.liveUid=s.liveUid;
+  return v;
+ }).filter(function(v){return (v.kind==="yt"&&v.ytId)||(v.kind==="cflive"&&v.liveUid);});
+ VIDEOS=VIDEOS.filter(function(v){return !v.isLive;});
+ VIDEOS=items.concat(VIDEOS);
+}
 (async function(){
  renderAuthArea();
  try{
@@ -1685,6 +1722,7 @@ async function loadCommunity(){
  }catch(e){}
  renderAuthArea();
  try{await loadCommunity();}catch(e){}
+ try{await loadLiveSlots();}catch(e){} /* 官方直播位：置頂插入 feed */
  renderFeed();renderWorks();refreshSocial(); /* 保險：社群載入失敗／零片都出示範 feed，唔會留白 */
  handleDeepLink();
 })();
