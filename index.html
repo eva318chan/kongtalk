@@ -772,11 +772,12 @@ function playVwrap(w){
   var catcher=document.createElement("div");catcher.className="vcatch";
   catcher.onclick=function(e){if(e)e.stopPropagation();togglePlay(w);};
   w.appendChild(catcher);
-  /* 開聲掣：浮喺右下角（YouTube 經 postMessage unmute；Stream 經 SDK） */
-  var spk=document.createElement("button");spk.className="livespk";spk.innerHTML=SVG_MUTE;
+  /* 開聲掣：浮喺右下角（只限 Cloudflare 直播經 Stream SDK；YouTube 有原生喇叭掣，唔加，避免一個畫面兩粒掣） */
+  if(v.kind!=="yt"){var spk=document.createElement("button");spk.className="livespk";spk.innerHTML=SVG_MUTE;
   spk.setAttribute("aria-label","開聲／靜音");
   spk.onclick=function(e){if(e)e.stopPropagation();setLiveMuted(w,w._liveMuted===false);};
-  w.appendChild(spk);w._liveMuted=true;
+  w.appendChild(spk);}
+  w._liveMuted=true;
   /* 觀眾統計：播緊先 join presence channel，停播即走，人數實時更新 */
   w._liveCh=livePresence(v.id);
   return;
