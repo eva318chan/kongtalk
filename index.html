@@ -970,6 +970,30 @@ function initFeedObserver(){
  },{root:feed,threshold:[0,0.5,0.75,1]});
  feed.querySelectorAll(".vcard").forEach(function(c){_feedObs.observe(c);});
 }
+/* 上滑轉片 fallback：就算原生滑動俾 video/iframe 食咗，都強制跳去下一條 */
+(function(){
+ var feed=document.getElementById("feed");
+ if(!feed)return;
+ var sy=0,st=0,tracking=false;
+ feed.addEventListener("touchstart",function(e){
+  if(e.touches.length!==1){tracking=false;return;}
+  tracking=true;sy=e.touches[0].clientY;st=feed.scrollTop;
+ },{passive:true});
+ feed.addEventListener("touchend",function(e){
+  if(!tracking)return;tracking=false;
+  try{
+   var dy=sy-e.changedTouches[0].clientY;
+   if(Math.abs(feed.scrollTop-st)>30)return; /* 原生滑動已郁，唔使理 */
+   if(Math.abs(dy)<60)return; /* 唔夠大力，唔算 swipe */
+   var cards=feed.querySelectorAll(".vcard");
+   if(!cards.length)return;
+   var h=feed.clientHeight||1;
+   var idx=Math.round(feed.scrollTop/h);
+   if(dy>0&&idx<cards.length-1){cards[idx+1].scrollIntoView({behavior:"smooth"});}
+   else if(dy<0&&idx>0){cards[idx-1].scrollIntoView({behavior:"smooth"});}
+  }catch(_){}
+ },{passive:true});
+})();
 var _followMap={}, _fansCount={}; // _followMap: 我關注咗邊啲人；_fansCount: user_id -> 粉絲數
 async function loadFollows(){
  _followMap={};_fansCount={};
