@@ -52,3 +52,5 @@
 - 唔好掂 `master` branch。
 
 <!-- rename-verified -->
+
+<!-- deploy-trigger -->
