@@ -252,6 +252,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .liveviewers{font-size:12px;color:#e0245e;font-weight:700;margin-left:8px;white-space:nowrap}
 .livespk{position:absolute;right:10px;bottom:10px;z-index:6;width:42px;height:42px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .livespk svg{width:22px;height:22px;fill:#fff}
+.livefs{position:absolute;right:58px;bottom:10px;z-index:6;width:42px;height:42px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.livefs svg{width:22px;height:22px;fill:#fff}
+.vwrap.theater{position:fixed!important;inset:0!important;z-index:9999!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;background:#000}
+.vwrap.theater iframe,.vwrap.theater video{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important}
+.vcard.in-theater .vctrl{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:10000!important}
+.vcard.in-theater .vov,.vcard.in-theater .vrail{display:none!important}
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.85);color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:all .25s;pointer-events:none;max-width:86%;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -790,7 +796,7 @@ function playVwrap(w){
   if(im0){livePlay(w,v);return;} /* 之前撳暫停過：直接繼續，唔重建 */
   var im=document.createElement("iframe");
   im.src=v.kind==="yt"
-   ?"https://www.youtube.com/embed/"+encodeURIComponent(v.ytId)+"?autoplay=1&mute=1&rel=0&playsinline=1&enablejsapi=1"
+   ?"https://www.youtube.com/embed/"+encodeURIComponent(v.ytId)+"?autoplay=1&mute=1&rel=0&playsinline=1&enablejsapi=1&controls=0"
    :"https://iframe.videodelivery.net/"+encodeURIComponent(v.liveUid)+"?autoplay=true&muted=true";
   im.style.cssText="position:absolute;inset:0;width:100%;height:100%;border:0";
   im.setAttribute("allow","accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture");
@@ -805,6 +811,10 @@ function playVwrap(w){
   spk.setAttribute("aria-label","開聲／靜音");
   spk.onclick=function(e){if(e)e.stopPropagation();setLiveMuted(w,w._liveMuted===false);};
   w.appendChild(spk);w._liveMuted=true;
+  var lfs=document.createElement("button");lfs.className="livefs";lfs.innerHTML=SVG_FS;
+  lfs.setAttribute("aria-label","\u5168\u87a2\u5e55");
+  lfs.onclick=function(e){if(e)e.stopPropagation();toggleTheater(w);};
+  w.appendChild(lfs);
   /* 觀眾統計：播緊先 join presence channel，停播即走，人數實時更新 */
   w._liveCh=livePresence(v.id);
   return;
@@ -833,10 +843,21 @@ var SVG_VOL='<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 
 var SVG_MUTE='<svg viewBox="0 0 24 24"><path d="M16.5 12A4.5 4.5 0 0014 8v2.2l2.4 2.4c.06-.2.1-.4.1-.6zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.8 8.8 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.9 6.1 12 8.2V4z"/></svg>';
 var SVG_FS='<svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>';
 var SVG_FSX='<svg viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>';
-document.addEventListener("fullscreenchange",function(){
- var f=!!document.fullscreenElement;
- document.querySelectorAll(".vctrl .vfs").forEach(function(b){b.innerHTML=f?SVG_FSX:SVG_FS;});
-});
+function syncTheaterIcons(){
+ document.querySelectorAll(".livefs").forEach(function(b){var w=b.closest?b.closest(".vwrap"):null;b.innerHTML=(w&&w.classList.contains("theater"))?SVG_FSX:SVG_FS;});
+ document.querySelectorAll(".vctrl .vfs").forEach(function(b){var cd=b.closest?b.closest(".vcard"):null;var w=cd&&cd.querySelector(".vwrap");b.innerHTML=(w&&w.classList.contains("theater"))?SVG_FSX:SVG_FS;});
+}
+function toggleTheater(w){
+ if(!w)return;
+ var card=w.closest?w.closest(".vcard"):w.parentNode;
+ var on=!w.classList.contains("theater");
+ document.querySelectorAll(".vwrap.theater").forEach(function(o){o.classList.remove("theater");});
+ document.querySelectorAll(".vcard.in-theater").forEach(function(o){o.classList.remove("in-theater");});
+ if(on){w.classList.add("theater");if(card&&card.classList)card.classList.add("in-theater");}
+ try{document.body.style.overflow=on?"hidden":"";}catch(e){}
+ syncTheaterIcons();
+}
+document.addEventListener("keydown",function(e){if(e.key==="Escape"||e.keyCode===27){document.querySelectorAll(".vwrap.theater").forEach(function(w){toggleTheater(w);});}});
 /* 全站音量心智：_wantSound 用戶想唔想有聲（撳過喇叭掣會記住；hover 裝置預設唔想）；_tapPlay 標記今次係咪用戶親手撳播（手勢可試聲） */
 var _wantSound=true,_tapPlay=false;
 try{if(window.matchMedia&&matchMedia("(hover:hover)").matches)_wantSound=false;}catch(e){}
@@ -870,11 +891,7 @@ function wireStreamSDK(w,im,i,trySound){
  vol.addEventListener("click",function(e){e.stopPropagation();try{
   player.muted=!player.muted;_wantSound=!player.muted;setVol();
  }catch(_){}});
- fsb.addEventListener("click",function(e){e.stopPropagation();try{
-  if(document.fullscreenElement){document.exitFullscreen();}
-  else if(w.requestFullscreen){w.requestFullscreen();}
-  else if(w.webkitRequestFullscreen){w.webkitRequestFullscreen();}
- }catch(_){}});
+ fsb.addEventListener("click",function(e){e.stopPropagation();try{toggleTheater(w);}catch(_){}});
  function seekEv(e){try{e.preventDefault();e.stopPropagation();var r=bar.getBoundingClientRect();var x=e.touches?e.touches[0].clientX:e.clientX;var f=Math.min(1,Math.max(0,(x-r.left)/r.width));var d=player.duration||0;if(d>0)player.currentTime=f*d;upd();}catch(_){}}
  bar.addEventListener("pointerdown",seekEv);
  setPP();setVol();upd();
