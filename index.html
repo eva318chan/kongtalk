@@ -67,6 +67,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .vwrap.playing .bigplay{display:none}
 .vov{position:absolute;left:0;right:0;bottom:0;padding:70px 84px 22px calc(20px + env(safe-area-inset-left,0px));background:linear-gradient(transparent,rgba(0,0,0,.72));pointer-events:none;z-index:4}
 .vtitle{font-size:17px;font-weight:700;color:#fff;line-height:1.45;text-shadow:0 1px 6px rgba(0,0,0,.65);margin-bottom:10px}
+.htag{color:#8fd8ff;font-weight:700;cursor:pointer}
+.htag:active{opacity:.65}
+.tagbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#16283a;color:#fff;font-size:15px;font-weight:700;position:sticky;top:0;z-index:6}
+.tagbar .cnt{font-weight:400;font-size:13px;opacity:.75}
+.tagbar .clear{margin-left:auto;background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:12px;padding:5px 12px;font-size:13px;cursor:pointer}
 .vauthor{display:flex;align-items:center;gap:8px;color:#fff;font-size:14px}
 .vauthor .avatar{width:32px;height:32px;font-size:15px;flex-shrink:0}
 .vplays{opacity:.75;font-size:12px}
@@ -286,6 +291,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <!-- ============ 首页 ============ -->
 <div class="screen active" id="s-home">
   <div class="feedlogo">講圈<small>DEMO</small></div>
+  <div id="tagbar" style="display:none"></div>
   <div id="feed"></div>
 </div>
 
@@ -693,13 +699,35 @@ function mediaHTML(v){
  if(v.stream&&v.uid) return '<img class="sthumb" src="'+streamThumb(v.uid)+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">';
  return '<video src="'+v.src+'" preload="metadata" playsinline></video>';
 }
+var _tagFilter=null;
+function videoHasTag(v,tag){
+ var m=String(v.t||'').match(/#([^#\s<>&;]+)#?/g);
+ if(!m)return false;
+ return m.some(function(h){return h.replace(/^#+|#+$/g,'')===tag;});
+}
+function openTag(ev,el){
+ ev.stopPropagation();
+ var tag=(el.textContent||'').replace(/^#+|#+$/g,'').trim();
+ if(!tag)return;
+ _tagFilter=tag;renderFeed();
+ try{document.getElementById('s-home').scrollTop=0;}catch(e){}
+ try{window.scrollTo(0,0);}catch(e){}
+}
+function clearTagFilter(){_tagFilter=null;renderFeed();}
 function renderFeed(){
+ var tb=document.getElementById('tagbar');
+ if(_tagFilter){
+  var n=VIDEOS.filter(function(v){return videoHasTag(v,_tagFilter);}).length;
+  tb.style.display='flex';
+  tb.innerHTML='<span>\uD83C\uDFF7\uFE0F #'+escHtml(_tagFilter)+'</span><span class="cnt">'+n+' \u689D\u7247</span><button class="clear" onclick="clearTagFilter()">\u2715 \u6E05\u9664</button>';
+ }else{tb.style.display='none';tb.innerHTML='';}
  var h="";
  VIDEOS.forEach(function(v,i){
+  if(_tagFilter&&!videoHasTag(v,_tagFilter))return;
   h+='<div class="vcard"><div class="vwrap" data-i="'+i+'" onclick="togglePlay(this)">'
    +mediaHTML(v)
    +'<div class="bigplay"></div></div>'
-   +'<div class="vov"><div class="vtitle">'+(v.isLive?'<span class="livebadge">🔴 直播中</span>':"")+escHtml(v.t)+'</div>'
+   +'<div class="vov"><div class="vtitle">'+(v.isLive?'<span class="livebadge">🔴 直播中</span>':"")+linkHashtags(v.t)+'</div>'
    +'<div class="vauthor"><div class="avatar">'+escHtml(v.av)+'</div><span>'+escHtml(v.a)+'</span><span class="vplays">'+v.p+'</span>'+(v.isLive?'<span class="liveviewers" data-slot="'+escHtml(v.id)+'">👁 --</span>':"")+'</div></div>'
    +'<div class="vrail"><button class="rbtn" onclick="openShareV('+i+')">📤<small>分享</small></button></div></div>';
   if((i+1)%5===0) h+='<div class="vcard adslot"><div class="adph">📢 廣告預留位<div class="adsub">正式版可接 Google AdSense／Pangle 信息流廣告</div></div></div>';
@@ -1502,6 +1530,10 @@ try{
 }catch(e){_sb=null;}
 function sbk(){return _sb.schema("ktalk");}
 function escHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function linkHashtags(s){
+ var e=escHtml(s);
+ return e.replace(/#([^#\s<>&;]+)#?/g,'<span class="htag" onclick="openTag(event,this)">#$1</span>');
+}
 async function refreshSbToken(){
  try{
   var s=_sb?await _sb.auth.getSession():null;
