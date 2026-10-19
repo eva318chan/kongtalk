@@ -50,3 +50,5 @@
 - 影片相關操作（上傳／刪除）同時牽涉 Cloudflare Stream 及 Supabase，兩邊要一齊處理，唔好只清一邊。
 - 用戶資料刪除（`delete-account.js`）係不可逆操作，執行前請光仔確認。
 - 唔好掂 `master` branch。
+
+<!-- rename-verified -->
