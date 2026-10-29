@@ -288,6 +288,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .delartbtn{display:block;margin:24px auto;background:#fff;border:1px solid #e5e5e5;color:#999;border-radius:20px;padding:8px 20px;font-size:14px}
 .followstat{padding:12px 16px 0;color:#888;font-size:13px}
 .empty{padding:40px 20px;text-align:center;color:#999;font-size:14px;line-height:1.8}
+/* 微信分享改版＋分享海報 */
+.wxcopylink{display:block;width:100%;background:#07c160;color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;margin:4px 0 12px;cursor:pointer}
+.wxsteps{background:#f6f6f6;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.9;color:#333;margin-bottom:6px;text-align:left}
+.wxqrtoggle{text-align:center;color:#07c160;font-size:14px;padding:10px;cursor:pointer}
+#postersheet .posterimg{width:100%;max-width:340px;border-radius:12px;display:block;margin:0 auto;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.posterhint{text-align:center;color:#666;font-size:13px;line-height:1.8;margin:12px 0}
 </style>
 </head>
 <body>
@@ -647,7 +653,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 
 <!-- 分享弹窗 -->
-<div class="mask" id="mask" onclick="closeShare();closeWx()"></div>
+<div class="mask" id="mask" onclick="closeShare();closeWx();closePoster()"></div>
 <div class="sheet" id="sheet">
   <h3>分享短片</h3>
   <div class="linkrow"><input id="sharelink" readonly value=""><button onclick="copyLink()">複製</button></div>
@@ -656,16 +662,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="opt" onclick="shareTo('wx')"><div class="oic" style="background:#07c160;font-size:22px">微</div>微信</div>
     <div class="opt" onclick="shareTo('fb')"><div class="oic" style="background:#1877F2">📘</div>Facebook</div>
     <div class="opt" onclick="copyLink()"><div class="oic gray">🔗</div>複製連結</div>
+    <div class="opt" onclick="makePoster()"><div class="oic" style="background:#ff6b00">🖼</div>分享海報</div>
   </div>
   <div class="note">IG 冇得直接分享網頁，撳「複製連結」再貼去 IG Story / Bio 就得<br>演示版暫用網頁連結分享</div>
   <button class="cancelbtn" onclick="closeShare()">取消</button>
 </div>
-<!-- 微信分享：QR code -->
+<!-- 微信分享：複製連結為主，QR code 為次 -->
 <div class="sheet" id="wxsheet">
   <h3>分享去微信</h3>
-  <div id="wxqr" style="width:200px;height:200px;margin:0 auto 12px"></div>
-  <div class="wxsteps">1. 用微信掃一掃上面個 QR code<br>2. 喺微信入面開啟後，撳右上角「···」<br>3. 分享給朋友／分享到朋友圈</div>
+  <button class="wxcopylink" onclick="copyLink()">📋 複製連結</button>
+  <div class="wxsteps">1. 撳上面「複製連結」<br>2. 去微信，喺對話框貼上傳送<br>3. 對方會見到呢條片嘅標題＋縮圖卡片</div>
+  <div class="wxqrtoggle" id="wxqrtoggle" onclick="toggleWxQr()">冇法複製？用 QR code（另一部手機掃）▾</div>
+  <div id="wxqr" style="width:200px;height:200px;margin:0 auto 12px;display:none"></div>
   <button class="cancelbtn" onclick="closeWx()">關閉</button>
+</div>
+<!-- 分享海報 -->
+<div class="sheet" id="postersheet">
+  <h3>分享海報</h3>
+  <img id="posterimg" class="posterimg" alt="分享海報">
+  <div class="posterhint">長按上面張圖儲存到手機<br>再發去微信對話／朋友圈，對方掃圖入面個 QR code 即睇得</div>
+  <button class="cancelbtn" onclick="closePoster()">關閉</button>
 </div>
 <div id="toast"></div>
 <div class="cfmask" id="cfmask"><div class="cfbox"><div class="cft" id="cft"></div><div class="cfbtns"><button class="cfbtn" id="cfcancel">取消</button><button class="cfbtn danger" id="cfok">確定</button></div></div></div>
@@ -1266,7 +1282,7 @@ function ptab(el,which){
  document.getElementById("works").style.display=which==="works"?"grid":"none";
 }
 /* 分享：每條片用獨立分享卡片（og 標籤），微信/WhatsApp 會顯示標題＋縮圖 */
-var _shareTitle="";
+var _shareTitle="";var _shareUrl="";var _shareThumb="";
 function openShareV(i){
  var v=VIDEOS[i];if(!v)return;
  _shareTitle=v.t||"講圈短片";
@@ -1284,6 +1300,7 @@ function openShareV(i){
  }
  url+="&others="+((_settings.shareOthers)?"1":"0");
  document.getElementById("sharelink").value=url;
+ _shareUrl=url;try{_shareThumb=videoThumb(v)||"";}catch(_e){_shareThumb="";}if(!_shareThumb)_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
  document.getElementById("mask").classList.add("show");
  document.getElementById("sheet").classList.add("show");
  shares++;refreshMyStats();
@@ -1291,6 +1308,7 @@ function openShareV(i){
 function openShare(title){_shareTitle=title||"講圈短片";
  var url=location.origin+"/api/share-card?t="+encodeURIComponent(_shareTitle);
  document.getElementById("sharelink").value=url;
+ _shareUrl=url;_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
  document.getElementById("mask").classList.add("show");
  document.getElementById("sheet").classList.add("show");
 }
@@ -1305,15 +1323,51 @@ function shareTo(which){
  else if(which==="fb") window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(document.getElementById("sharelink").value)+"&quote="+encodeURIComponent("講圈 — 香港人講嘢嘅短片平台：「"+_shareTitle+"」"),"_blank");
  else if(which==="wx") openWx();
 }
-/* 微信分享：QR code */
-function openWx(){
- closeShare();
- var url=document.getElementById("sharelink").value||location.href;
- var box=document.getElementById("wxqr");box.innerHTML="";
- try{new QRCode(box,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});}
- catch(e){box.innerHTML='<div style="padding:60px 20px;text-align:center;color:#999;font-size:13px">QR code 載入失敗<br>請用「複製連結」貼去微信</div>';}
- document.getElementById("mask").classList.add("show");
- document.getElementById("wxsheet").classList.add("show");
+/* 微信分享：複製連結為主，QR code 按需展開 */
+function openWx(){  closeShare();  var box=document.getElementById("wxqr");box.style.display="none";box.innerHTML="";  document.getElementById("wxqrtoggle").innerHTML="冇法複製？用 QR code（另一部手機掃）▾";  document.getElementById("mask").classList.add("show");  document.getElementById("wxsheet").classList.add("show"); }
+function toggleWxQr(){  var box=document.getElementById("wxqr"),tg=document.getElementById("wxqrtoggle");  if(box.style.display!=="none"&&box.innerHTML){box.style.display="none";box.innerHTML="";tg.innerHTML="冇法複製？用 QR code（另一部手機掃）▾";return;}  var url=document.getElementById("sharelink").value||location.href;  box.innerHTML="";  try{new QRCode(box,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});}  catch(e){box.innerHTML='<div style="padding:60px 20px;text-align:center;color:#999;font-size:13px">QR code 載入失敗<br>請用「複製連結」貼去微信</div>';}  box.style.display="block";tg.innerHTML="收起 QR code ▴"; }
+function closePoster(){  var m=document.getElementById("mask");if(m)m.classList.remove("show");  var s=document.getElementById("postersheet");if(s)s.classList.remove("show"); }
+/* 分享海報：縮圖＋標題＋QR code，長按儲存發去微信／朋友圈 */
+function makePoster(){
+  closeShare();
+  var title=_shareTitle||"講圈短片";
+  var url=_shareUrl||document.getElementById("sharelink").value||location.href;
+  var thumb=_shareThumb||"https://picsum.photos/seed/kongtalk/800/450";
+  toast("海報生成緊…");
+  var W=900,H=1240,cv=document.createElement("canvas");cv.width=W;cv.height=H;
+  var x=cv.getContext("2d");
+  var FONT="PingFang HK,Microsoft JhengHei,-apple-system,sans-serif";
+  function wrap(t,maxW,fs,maxL){x.font="700 "+fs+"px "+FONT;var ch=String(t).split(""),ls=[],ln="";for(var i=0;i<ch.length;i++){var s=ln+ch[i];if(x.measureText(s).width>maxW&&ln){ls.push(ln);ln=ch[i];if(ls.length>=maxL){ln=ln+"…";break;}}else{ln=s;}}ls.push(ln);return ls;}
+  function drawCover(img){var s=Math.max(W/img.width,600/img.height),w=W/s,h=600/s,sx=(img.width-w)/2,sy=(img.height-h)/2;x.drawImage(img,sx,sy,w,h,0,0,W,600);}
+  var thumbImg=new Image();thumbImg.crossOrigin="anonymous";var settled=false;
+  function render(qrEl){
+    x.fillStyle="#ffffff";x.fillRect(0,0,W,H);
+    if(thumbImg&&thumbImg.width>0){try{drawCover(thumbImg);}catch(e){x.fillStyle="#1c1c1e";x.fillRect(0,0,W,600);}}
+    else{x.fillStyle="#1c1c1e";x.fillRect(0,0,W,600);}
+    x.fillStyle="#111111";x.textBaseline="alphabetic";
+    var ls=wrap(title,804,46,3),ty=690,i;
+    for(i=0;i<ls.length;i++){x.fillText(ls[i],48,ty);ty+=64;}
+    x.fillStyle="#888888";x.font="400 30px "+FONT;
+    x.fillText("講圈 · 香港人講嘢嘅短片平台",48,ty+18);
+    x.strokeStyle="#eeeeee";x.lineWidth=2;x.beginPath();x.moveTo(48,ty+58);x.lineTo(W-48,ty+58);x.stroke();
+    var qy=ty+100;
+    if(qrEl){try{x.drawImage(qrEl,64,qy,240,240);}catch(e){}}
+    x.fillStyle="#111111";x.font="700 40px "+FONT;
+    x.fillText("微信掃一掃",340,qy+96);
+    x.fillStyle="#666666";x.font="400 30px "+FONT;
+    x.fillText("即刻睇呢條片",340,qy+148);
+    var du=cv.toDataURL("image/png");
+    document.getElementById("posterimg").src=du;
+    document.getElementById("mask").classList.add("show");
+    document.getElementById("postersheet").classList.add("show");
+  }
+  function go(){if(settled)return;settled=true;
+    var tmp=document.createElement("div");tmp.style.cssText="position:absolute;left:-9999px;top:0";
+    document.body.appendChild(tmp);
+    try{new QRCode(tmp,{text:url,width:240,height:240,correctLevel:QRCode.CorrectLevel.M});}catch(e){}
+    setTimeout(function(){var qrEl=tmp.querySelector("img")||tmp.querySelector("canvas");try{render(qrEl);}catch(e){toast("海報生成失敗，請用「複製連結」分享");}if(tmp.parentNode)tmp.parentNode.removeChild(tmp);},300);
+  }
+  thumbImg.onload=go;thumbImg.onerror=go;thumbImg.src=thumb;setTimeout(go,7000);
 }
 function closeWx(){document.getElementById("mask").classList.remove("show");document.getElementById("wxsheet").classList.remove("show");}
 /* 微信內開啟提示 */
@@ -1325,7 +1379,7 @@ if(/MicroMessenger/i.test(navigator.userAgent)){
 }
 function copyLink(){
  var url=document.getElementById("sharelink").value;
- var done=function(){toast("連結 copy 咗，貼去 WhatsApp、Facebook、IG 都得");};
+ var done=function(){toast("連結 copy 咗，貼去微信／WhatsApp／Facebook 都得");};
  if(navigator.clipboard&&navigator.clipboard.writeText){
   navigator.clipboard.writeText(shareText()).then(done).catch(function(){fallback();});
  }else{fallback();}
