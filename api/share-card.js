@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
       }
     } catch (e) { /* 查唔到就用參數/fallback，卡照出 */ }
     img = "https://videodelivery.net/" + uid + "/thumbnails/thumbnail.jpg";
-    vsrc = "https://videodelivery.net/" + uid + "/downloads/default.mp4";
+    vsrc = "https://videodelivery.net/" + uid + "/manifest/video.m3u8"; /* HLS：mp4 下載多數冇開（404），m3u8 先係穩陣 */
   }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
   if (!/^https:\/\//i.test(vsrc)) vsrc = "";
@@ -70,10 +70,11 @@ module.exports = async (req, res) => {
   };
   var desc = "記錄港生活，分享港味道。" + (p ? "（" + p + "）" : "");
   var ogtype = vsrc ? "video.other" : "website";
+  var ogvtype = /\.m3u8$/i.test(vsrc) ? "application/x-mpegURL" : "video/mp4";
   var ogvideo = vsrc
     ? '<meta property="og:video" content="' + esc(vsrc) + '">' +
       '<meta property="og:video:secure_url" content="' + esc(vsrc) + '">' +
-      '<meta property="og:video:type" content="video/mp4">' +
+      '<meta property="og:video:type" content="' + ogvtype + '">' +
       '<meta property="og:video:width" content="400">' +
       '<meta property="og:video:height" content="700">'
     : "";
