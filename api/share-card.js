@@ -121,6 +121,6 @@ module.exports = async (req, res) => {
       : '') +
     "</div></div></body></html>";
   res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.setHeader("Cache-Control", "no-store"); /* 分享落地頁唔做 cache：掃 QR 永遠攞最新版，免舊播放器陰魂不散 */
   res.status(200).send(html);
 };
