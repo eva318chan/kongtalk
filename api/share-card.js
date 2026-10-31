@@ -78,7 +78,7 @@ module.exports = async (req, res) => {
       '<meta property="og:video:width" content="400">' +
       '<meta property="og:video:height" content="700">'
     : "";
-  var deeplink = (uid || demo) ? "https://ktalk.hk/#v=" + vkey : "https://ktalk.hk/#v=" + encodeURIComponent(t);
+  var deeplink = vkey ? "https://ktalk.hk/#v=" + encodeURIComponent(vkey) : "https://ktalk.hk/#v=" + encodeURIComponent(t); /* 直播位（live0）都要直達，唔好跌回標題 */
   var btn =
     '<a href="' + deeplink + '" style="display:block;text-align:center;background:#07c160;color:#fff;' +
     'border-radius:28px;padding:14px;margin-top:18px;text-decoration:none;font-size:16px;font-weight:700">▶ 去講圈睇呢條片</a>';
