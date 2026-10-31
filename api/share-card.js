@@ -103,14 +103,17 @@ module.exports = async (req, res) => {
     '<div style="max-width:480px;margin:0 auto;background:#fff;min-height:100vh">' +
     '<div style="padding:14px 18px;font-weight:800;font-size:18px">講圈 ' +
     '<span style="font-weight:400;font-size:13px;color:#888">香港人講嘢嘅短片平台</span></div>' +
-    (vsrc
-      ? '<video id="sharevid" src="' + esc(vsrc) + '" poster="' + esc(img) + '" preload="metadata" controls playsinline webkit-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" style="width:100%;display:block;background:#000;max-height:72vh"></video>'
-      : '<img src="' + esc(img) + '" style="width:100%;display:block" alt="">') +
+    (uid
+      ? '<div style="position:relative;width:100%;aspect-ratio:9/16;max-height:72vh;background:#000;overflow:hidden">'
+        + '<iframe src="https://iframe.videodelivery.net/' + uid + '" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen="true"></iframe></div>'
+      : (vsrc
+        ? '<video id="sharevid" src="' + esc(vsrc) + '" poster="' + esc(img) + '" preload="metadata" controls playsinline webkit-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" style="width:100%;display:block;background:#000;max-height:72vh"></video>'
+        : '<img src="' + esc(img) + '" style="width:100%;display:block" alt="">')) +
     '<div style="padding:16px 18px 30px">' +
     '<div style="font-size:17px;font-weight:700">' + esc(t) + "</div>" +
     '<div style="color:#888;font-size:13px;margin-top:6px">' + esc(desc) + "</div>" +
     btn +
-    (vsrc
+    (vsrc && !uid
       ? '<script>(function(){var v=document.getElementById("sharevid");if(!v)return;'
         + 'function tp(){try{var p=v.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}'
         + 'if(/MicroMessenger/i.test(navigator.userAgent||"")){document.addEventListener("WeixinJSBridgeReady",tp,false);}'
