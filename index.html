@@ -1365,7 +1365,7 @@ function makePoster(){
     var tmp=document.createElement("div");tmp.style.cssText="position:absolute;left:-9999px;top:0";
     document.body.appendChild(tmp);
     try{new QRCode(tmp,{text:url,width:240,height:240,correctLevel:QRCode.CorrectLevel.M});}catch(e){}
-    setTimeout(function(){var qrEl=tmp.querySelector("img")||tmp.querySelector("canvas");try{render(qrEl);}catch(e){toast("海報生成失敗，請用「複製連結」分享");}if(tmp.parentNode)tmp.parentNode.removeChild(tmp);},300);
+    setTimeout(function(){var qrEl=tmp.querySelector("canvas")||tmp.querySelector("img"); /* canvas 同步畫完實有；img 解碼非同步，Android 會捉到半張 */try{render(qrEl);}catch(e){toast("海報生成失敗，請用「複製連結」分享");}if(tmp.parentNode)tmp.parentNode.removeChild(tmp);},300);
   }
   thumbImg.onload=go;thumbImg.onerror=go;thumbImg.src=thumb;setTimeout(go,7000);
 }
