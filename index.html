@@ -1923,7 +1923,11 @@ function handleDeepLink(){
     go("s-home",document.querySelectorAll(".tab")[0]);
     setTimeout(function(){
      var els=document.querySelectorAll("#feed .vcard .vwrap");
-     if(els[idx]){els[idx].scrollIntoView({block:"start"});togglePlay(els[idx]);}
+     if(!els[idx])return;
+     els[idx].scrollIntoView({block:"start"});
+     /* 微信內置瀏覽器擋跨頁自動播：淨碌去唔自動撳播，留返個大播掣俾用戶親手撳（手勢先播得） */
+     if(/MicroMessenger/i.test(navigator.userAgent||""))return;
+     togglePlay(els[idx]);
     },600);
     return;
    }

@@ -1,6 +1,6 @@
 // Vercel Serverless Function — 每條短片嘅獨立分享卡片（講圈 KongTalk）。
 // 微信 / WhatsApp / Facebook 嘅爬蟲會讀呢頁嘅 og 標籤，顯示「標題＋影片縮圖」卡片；
-// 真人撳入嚟會見到 landing 頁：縮圖＋標題＋「去講圈睇片」掣，
+// 真人撳入嚟會見到 landing 頁：影片播放器（有片源先有）＋標題＋「去講圈睇片」掣，
 // 若分享者開咗「分享時附上主頁連結」，會多個「睇埋我其他片」掣。
 // 兩種用法：
 //   短連結（新）：GET /api/share-card?v=<stream_uid|dN>&others=1|0
@@ -102,11 +102,19 @@ module.exports = async (req, res) => {
     '<div style="max-width:480px;margin:0 auto;background:#fff;min-height:100vh">' +
     '<div style="padding:14px 18px;font-weight:800;font-size:18px">講圈 ' +
     '<span style="font-weight:400;font-size:13px;color:#888">香港人講嘢嘅短片平台</span></div>' +
-    '<img src="' + esc(img) + '" style="width:100%;display:block" alt="">' +
+    (vsrc
+      ? '<video id="sharevid" src="' + esc(vsrc) + '" poster="' + esc(img) + '" preload="metadata" controls playsinline webkit-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" style="width:100%;display:block;background:#000;max-height:72vh"></video>'
+      : '<img src="' + esc(img) + '" style="width:100%;display:block" alt="">') +
     '<div style="padding:16px 18px 30px">' +
     '<div style="font-size:17px;font-weight:700">' + esc(t) + "</div>" +
     '<div style="color:#888;font-size:13px;margin-top:6px">' + esc(desc) + "</div>" +
     btn +
+    (vsrc
+      ? '<script>(function(){var v=document.getElementById("sharevid");if(!v)return;'
+        + 'function tp(){try{var p=v.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}'
+        + 'if(/MicroMessenger/i.test(navigator.userAgent||"")){document.addEventListener("WeixinJSBridgeReady",tp,false);}'
+        + '})();<\/script>'
+      : '') +
     "</div></div></body></html>";
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "public, max-age=3600");
