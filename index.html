@@ -1400,7 +1400,10 @@ function makePoster(){
     x.fillStyle="#666666";x.font="400 30px "+FONT;
     x.fillText("即刻睇呢條片",340,qy+148);
     var du=cv.toDataURL("image/png");
-    document.getElementById("posterimg").src=du;
+    var pim=document.getElementById("posterimg");
+    pim.src=du;
+    /* 大圖解碼要時間，QR 喺最底 — 等解完先至算完成，唔係快手截圖／儲存會捉到半張 */
+    if(pim.decode){try{pim.decode().catch(function(){});}catch(e){}}
     document.getElementById("mask").classList.add("show");
     document.getElementById("postersheet").classList.add("show");
   }
