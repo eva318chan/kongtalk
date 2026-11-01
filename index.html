@@ -1404,11 +1404,32 @@ function makePoster(){
     document.getElementById("mask").classList.add("show");
     document.getElementById("postersheet").classList.add("show");
   }
+  function qrInkOk(el){
+    try{
+      var w=el.width||240,h=el.height||240;
+      if(!w||!h)return false;
+      var c=document.createElement("canvas");c.width=w;c.height=h;
+      var cx=c.getContext("2d");cx.drawImage(el,0,0);
+      var d=cx.getImageData(0,0,w,h).data,dark=0;
+      for(var i=0;i<d.length;i+=32){if(d[i]<110)dark++;}
+      return dark>300;
+    }catch(e){return true;}
+  }
   function go(){if(settled)return;settled=true;
     var tmp=document.createElement("div");tmp.style.cssText="position:absolute;left:-9999px;top:0";
     document.body.appendChild(tmp);
     try{new QRCode(tmp,{text:url,width:240,height:240,correctLevel:QRCode.CorrectLevel.M});}catch(e){}
-    setTimeout(function(){var qrEl=tmp.querySelector("canvas")||tmp.querySelector("img"); /* canvas 同步畫完實有；img 解碼非同步，Android 會捉到半張 */try{render(qrEl);}catch(e){toast("海報生成失敗，請用「複製連結」分享");}if(tmp.parentNode)tmp.parentNode.removeChild(tmp);},300);
+    var tries=0;
+    (function waitQr(){
+      var qrEl=tmp.querySelector("canvas")||tmp.querySelector("img");
+      if(qrEl&&qrInkOk(qrEl)){finish(qrEl);return;}
+      if(++tries<15){setTimeout(waitQr,200);return;}
+      finish(qrEl);
+    })();
+    function finish(qrEl){
+      try{render(qrEl);}catch(e){toast("海報生成失敗，請用「複製連結」分享");}
+      if(tmp.parentNode)tmp.parentNode.removeChild(tmp);
+    }
   }
   thumbImg.onload=go;thumbImg.onerror=go;thumbImg.src=thumb;setTimeout(go,7000);
 }
