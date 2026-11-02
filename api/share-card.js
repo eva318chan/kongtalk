@@ -68,6 +68,13 @@ module.exports = async (req, res) => {
   var esc = function (s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   };
+  // og:url 必須係卡片自己嘅 canonical：之前寫死 https://ktalk.hk/，Facebook 會跟 og:url
+  // 將張卡 merge 返主頁，預覽變咗主頁標題＋主頁 og:image（picsum placeholder），所以 FB 出唔到片圖；
+  // WhatsApp 唔跟 og:url canonicalization，先至淨係 FB 出事。
+  // 剔走 others（只影響落地頁多唔多粒掣，唔影響卡片內容），等 &others=1/0 唔會分開兩個 FB object。
+  var canonQ = String(req.url || "").split("?")[1] || "";
+  canonQ = canonQ.split("&").filter(function (p) { return !/^others=/i.test(p); }).join("&");
+  var canon = "https://ktalk.hk/api/share-card" + (canonQ ? "?" + canonQ : "");
   var desc = "記錄港生活，分享港味道。" + (p ? "（" + p + "）" : "");
   var ogtype = vsrc ? "video.other" : "website";
   var ogvtype = /\.m3u8$/i.test(vsrc) ? "application/x-mpegURL" : "video/mp4";
@@ -97,7 +104,7 @@ module.exports = async (req, res) => {
     '<meta property="og:title" content="' + esc(t) + '">' +
     '<meta property="og:description" content="' + esc(desc) + '">' +
     '<meta property="og:image" content="' + esc(img) + '">' +
-    '<meta property="og:url" content="https://ktalk.hk/">' +
+    '<meta property="og:url" content="' + esc(canon) + '">' +
     "</head>" +
     '<body style="margin:0;font-family:-apple-system,\'PingFang HK\',\'Microsoft JhengHei\',sans-serif;background:#f0f0f0">' +
     '<div style="max-width:480px;margin:0 auto;background:#fff;min-height:100vh">' +
