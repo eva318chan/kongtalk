@@ -77,10 +77,15 @@ module.exports = async (req, res) => {
   var canon = "https://ktalk.hk/api/share-card" + (canonQ ? "?" + canonQ : "");
   var desc = "記錄港生活，分享港味道。" + (p ? "（" + p + "）" : "");
   var ogtype = vsrc ? "video.other" : "website";
-  var ogvtype = /\.m3u8$/i.test(vsrc) ? "application/x-mpegURL" : "video/mp4";
-  var ogvideo = vsrc
-    ? '<meta property="og:video" content="' + esc(vsrc) + '">' +
-      '<meta property="og:video:secure_url" content="' + esc(vsrc) + '">' +
+  // Facebook 唔識 inline 播 HLS（m3u8），og:video 指去 m3u8 會令成個 media attachment 出唔到。
+  // 學 YouTube（og:video 指去 /embed，type=text/html）：真片改用 Cloudflare Stream 官方 iframe
+  // 播放器做 embed，FB post 就會好似 YouTube 分享咁出大圖＋撳入去 inline 播片。demo 嘅 mp4
+  // 維持 video/mp4（FB 原生識播）。冇 uid 嘅舊式 m3u8 連結維持原樣。
+  var ogvurl = (/\.m3u8$/i.test(vsrc) && uid) ? "https://iframe.videodelivery.net/" + uid : vsrc;
+  var ogvtype = (/\.m3u8$/i.test(vsrc) && uid) ? "text/html" : "video/mp4";
+  var ogvideo = ogvurl
+    ? '<meta property="og:video" content="' + esc(ogvurl) + '">' +
+      '<meta property="og:video:secure_url" content="' + esc(ogvurl) + '">' +
       '<meta property="og:video:type" content="' + ogvtype + '">' +
       '<meta property="og:video:width" content="400">' +
       '<meta property="og:video:height" content="700">'
