@@ -73,7 +73,7 @@ module.exports = async (req, res) => {
   // WhatsApp 唔跟 og:url canonicalization，先至淨係 FB 出事。
   // 剔走 others（只影響落地頁多唔多粒掣，唔影響卡片內容），等 &others=1/0 唔會分開兩個 FB object。
   var canonQ = String(req.url || "").split("?")[1] || "";
-  canonQ = canonQ.split("&").filter(function (p) { return !/^others=/i.test(p); }).join("&");
+  canonQ = canonQ.split("&").filter(function (p) { return !/^others=/i.test(p) && !/^fbclid=/i.test(p); }).join("&");
   var canon = "https://ktalk.hk/api/share-card" + (canonQ ? "?" + canonQ : "");
   var desc = "記錄港生活，分享港味道。" + (p ? "（" + p + "）" : "");
   var ogtype = vsrc ? "video.other" : "website";
