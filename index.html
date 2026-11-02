@@ -780,6 +780,16 @@ function pauseAllV(){
   o.classList.remove("playing");stopMedia(o);restoreMedia(o,VIDEOS[+o.getAttribute("data-i")]);
  });
 }
+/* 開分享嗰陣：播緊嘅片要 pause（唔拆播放器，閂咗分享之後撳返條片就可以繼續播） */
+function pausePlayingForShare(){
+ var w=document.querySelector(".vwrap.playing");
+ if(!w)return;
+ var i=+w.getAttribute("data-i"),v=VIDEOS[i];
+ w.classList.remove("playing");
+ if(v&&v.stream&&w._sp){try{w._sp.pause();}catch(e){}return;} /* Stream SDK：真暫停，保留進度 */
+ if(v&&v.isLive){livePause(w,v);return;} /* 直播：真暫停唔拆 iframe */
+ var vd=w.querySelector("video");if(vd){try{vd.pause();}catch(e){}}
+}
 /* 播某條片：先停其他；有聲播唔到就自動轉靜音播 */
 /* 播放計數：每條片每個 page-load 只計一次，畫面即時 +1，後端同步加 */
 var _bumped={};
@@ -1328,6 +1338,7 @@ function ptab(el,which){
 var _shareTitle="";var _shareUrl="";var _shareThumb="";
 function openShareV(i){
  var v=VIDEOS[i];if(!v)return;
+ pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
  _shareTitle=v.t||"講圈短片";
  var url;
  var sid=(v.stream&&v.uid)?v.uid:(v.id||"");
@@ -1349,6 +1360,7 @@ function openShareV(i){
  shares++;refreshMyStats();
 }
 function openShare(title){_shareTitle=title||"講圈短片";
+ pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
  var url=location.origin+"/api/share-card?t="+encodeURIComponent(_shareTitle);
  document.getElementById("sharelink").value=url;
  _shareUrl=url;_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
