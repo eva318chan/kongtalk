@@ -292,6 +292,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .wxcopylink{display:block;width:100%;background:#07c160;color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;margin:4px 0 12px;cursor:pointer}
 .wxsteps{background:#f6f6f6;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.9;color:#333;margin-bottom:6px;text-align:left}
 .wxqrtoggle{text-align:center;color:#07c160;font-size:14px;padding:10px;cursor:pointer}
+.wxcopiedtext{background:#f4f4f5;border-radius:10px;padding:12px 14px;font-size:13px;color:#666;margin:0 0 12px;word-break:break-all;max-height:86px;overflow:hidden;text-align:left}
+.wxgowx{display:block;width:100%;background:#07c160;color:#fff;border:none;border-radius:28px;padding:14px;font-size:17px;font-weight:700;margin:4px 0 12px;cursor:pointer}
 #postersheet .posterimg{width:100%;max-width:340px;border-radius:12px;display:block;margin:0 auto;box-shadow:0 4px 16px rgba(0,0,0,.15)}
 .posterhint{text-align:center;color:#666;font-size:13px;line-height:1.8;margin:12px 0}
 </style>
@@ -667,12 +669,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div class="note">IG 冇得直接分享網頁，撳「複製連結」再貼去 IG Story / Bio 就得<br>演示版暫用網頁連結分享</div>
   <button class="cancelbtn" onclick="closeShare()">取消</button>
 </div>
-<!-- 微信分享：複製連結為主，QR code 為次 -->
+<!-- 微信分享（學淘寶）：一撳即 copy，大掣跳去微信 App 貼上 -->
 <div class="sheet" id="wxsheet">
-  <h3>分享去微信</h3>
-  <button class="wxcopylink" onclick="copyLink()">📋 複製連結</button>
-  <div class="wxsteps">1. 撳上面「複製連結」<br>2. 去微信，喺對話框貼上傳送<br>3. 對方會見到呢條片嘅標題＋縮圖卡片</div>
-  <div class="wxqrtoggle" id="wxqrtoggle" onclick="toggleWxQr()">冇法複製？用 QR code（另一部手機掃）▾</div>
+  <h3><span style="color:#07c160">✓</span> 已複製</h3>
+  <div class="wxcopiedtext" id="wxcopiedtext"></div>
+  <button class="wxgowx" id="wxgowx" onclick="goWeChat()">去微信貼畀好友</button>
+  <div class="wxsteps" id="wxsteps"></div>
+  <div class="wxqrtoggle" id="wxqrtoggle" onclick="toggleWxQr()">冇裝微信 App？用 QR code（另一部手機掃）▾</div>
   <div id="wxqr" style="width:200px;height:200px;margin:0 auto 12px;display:none"></div>
   <button class="cancelbtn" onclick="closeWx()">關閉</button>
 </div>
@@ -1406,8 +1409,37 @@ function shareTo(which){
  else if(which==="wx") openWx();
 }
 /* 微信分享：複製連結為主，QR code 按需展開 */
-function openWx(){  closeShare();  _shareOpen=true;  var box=document.getElementById("wxqr");box.style.display="none";box.innerHTML="";  document.getElementById("wxqrtoggle").innerHTML="冇法複製？用 QR code（另一部手機掃）▾";  document.getElementById("mask").classList.add("show");  document.getElementById("wxsheet").classList.add("show"); }
-function toggleWxQr(){  var box=document.getElementById("wxqr"),tg=document.getElementById("wxqrtoggle");  if(box.style.display!=="none"&&box.innerHTML){box.style.display="none";box.innerHTML="";tg.innerHTML="冇法複製？用 QR code（另一部手機掃）▾";return;}  var url=document.getElementById("sharelink").value||location.href;  box.innerHTML="";  try{new QRCode(box,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});}  catch(e){box.innerHTML='<div style="padding:60px 20px;text-align:center;color:#999;font-size:13px">QR code 載入失敗<br>請用「複製連結」貼去微信</div>';}  box.style.display="block";tg.innerHTML="收起 QR code ▴"; }
+/* 微信分享（學淘寶）：一撳即 copy，大掣跳去微信 App 貼上 */
+function openWx(){
+  closeShare();_shareOpen=true;
+  var txt=shareText();
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){fallbackCopyWx(txt);});}
+    else fallbackCopyWx(txt);
+  }catch(e){fallbackCopyWx(txt);}
+  document.getElementById("wxcopiedtext").textContent=txt;
+  var isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||"");
+  document.getElementById("wxgowx").style.display=isMobile?"block":"none";
+  document.getElementById("wxsteps").innerHTML=isMobile
+    ?"撳上面粒掣跳去微信，喺對話框貼上傳送，對方會見到呢條片嘅標題＋縮圖卡片"
+    :"段文字已經幫你 copy 好：去微信，喺對話框貼上傳送，對方會見到呢條片嘅標題＋縮圖卡片";
+  var box=document.getElementById("wxqr");box.style.display="none";box.innerHTML="";
+  document.getElementById("wxqrtoggle").innerHTML="冇裝微信 App？用 QR code（另一部手機掃）▾";
+  document.getElementById("mask").classList.add("show");
+  document.getElementById("wxsheet").classList.add("show");
+}
+function fallbackCopyWx(t){
+  var ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;opacity:0";
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");}catch(e){}
+  document.body.removeChild(ta);
+}
+/* 跳去微信 App（weixin://）；跳唔到（冇裝）就 toast 提手動去貼 */
+function goWeChat(){
+  try{window.location.href="weixin://";}catch(e){}
+  setTimeout(function(){toast("喺微信對話框貼上就得");},1500);
+}
+function toggleWxQr(){  var box=document.getElementById("wxqr"),tg=document.getElementById("wxqrtoggle");  if(box.style.display!=="none"&&box.innerHTML){box.style.display="none";box.innerHTML="";tg.innerHTML="冇裝微信 App？用 QR code（另一部手機掃）▾";return;}  var url=document.getElementById("sharelink").value||location.href;  box.innerHTML="";  try{new QRCode(box,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});}  catch(e){box.innerHTML='<div style="padding:60px 20px;text-align:center;color:#999;font-size:13px">QR code 載入失敗<br>請用「複製連結」貼去微信</div>';}  box.style.display="block";tg.innerHTML="收起 QR code ▴"; }
 function closePoster(){  _shareOpen=false;  var m=document.getElementById("mask");if(m)m.classList.remove("show");  var s=document.getElementById("postersheet");if(s)s.classList.remove("show"); }
 /* 分享海報：縮圖＋標題＋QR code，長按儲存發去微信／朋友圈 */
 function makePoster(){
