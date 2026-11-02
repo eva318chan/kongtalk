@@ -1338,11 +1338,32 @@ function ptab(el,which){
 }
 /* 分享：每條片用獨立分享卡片（og 標籤），微信/WhatsApp 會顯示標題＋縮圖 */
 var _shareTitle="";var _shareUrl="";var _shareThumb="";
+/* 海報用「而家播到嗰格」：Stream 片記 uid＋秒數（?time= 攞嗰秒嘅縮圖）；mp4 直接截 video element 嗰格 */
+var _shareUid="",_shareTime=0,_shareFrame="";
+function snapShareFrame(i,v){
+ _shareUid="";_shareTime=0;_shareFrame="";
+ try{
+  var w=document.querySelector('.vwrap[data-i="'+i+'"]');
+  if(v&&v.stream&&v.uid){
+   _shareUid=v.uid;
+   if(w&&w._sp&&w._sp.currentTime>0)_shareTime=Math.floor(w._sp.currentTime);
+  }else if(w){
+   var vd=w.querySelector("video");
+   if(vd&&vd.videoWidth>0&&vd.currentTime>0){
+    var cc=document.createElement("canvas");
+    cc.width=vd.videoWidth;cc.height=vd.videoHeight;
+    cc.getContext("2d").drawImage(vd,0,0,cc.width,cc.height);
+    _shareFrame=cc.toDataURL("image/jpeg",0.85);
+   }
+  }
+ }catch(e){_shareFrame="";} /* cross-origin 截唔到就跌回預設縮圖 */
+}
 /* 分享 sheet 開住嗰陣：feed 唔可以自動播（observer／播完自動跳下一條全部停），等用戶閂咗分享先 */
 var _shareOpen=false;
 function openShareV(i){
  var v=VIDEOS[i];if(!v)return;
  pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
+ snapShareFrame(i,v); /* 記低播到邊：海報用嗰格做圖 */
  _shareOpen=true; /* 分享開住：feed 唔自動播 */
  _shareTitle=v.t||"講圈短片";
  var url;
@@ -1395,6 +1416,10 @@ function makePoster(){
   var title=_shareTitle||"講圈短片";
   var url=_shareUrl||document.getElementById("sharelink").value||location.href;
   var thumb=_shareThumb||"https://picsum.photos/seed/kongtalk/800/450";
+  var thumbTimed=false;
+  /* 海報圖＝分享嗰刻播到嗰格：Stream 片用 ?time= 攞嗰秒縮圖；mp4 用頭先截到嘅 frame */
+  if(_shareUid&&_shareTime>0){thumb="https://videodelivery.net/"+_shareUid+"/thumbnails/thumbnail.jpg?time="+_shareTime+"s";thumbTimed=true;}
+  else if(_shareFrame){thumb=_shareFrame;}
   toast("海報生成緊…");
   var W=900,H=1240,cv=document.createElement("canvas");cv.width=W;cv.height=H;
   var x=cv.getContext("2d");
@@ -1453,7 +1478,12 @@ function makePoster(){
       if(tmp.parentNode)tmp.parentNode.removeChild(tmp);
     }
   }
-  thumbImg.onload=go;thumbImg.onerror=go;thumbImg.src=thumb;setTimeout(go,7000);
+  thumbImg.onload=go;
+  thumbImg.onerror=function(){ /* ?time= 超出片長會 400：跌回預設縮圖再試 */
+    if(thumbTimed){thumbTimed=false;thumb=_shareThumb||"https://picsum.photos/seed/kongtalk/800/450";thumbImg.src=thumb;return;}
+    go();
+  };
+  thumbImg.src=thumb;setTimeout(go,7000);
 }
 function closeWx(){_shareOpen=false;document.getElementById("mask").classList.remove("show");document.getElementById("wxsheet").classList.remove("show");}
 /* 微信內開啟提示 */
