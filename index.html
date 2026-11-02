@@ -1338,7 +1338,7 @@ function ptab(el,which){
 }
 /* 分享：每條片用獨立分享卡片（og 標籤），微信/WhatsApp 會顯示標題＋縮圖 */
 var _shareTitle="";var _shareUrl="";var _shareThumb="";
-/* 海報用「而家播到嗰格」：Stream 片記 uid＋秒數（?time= 攞嗰秒嘅縮圖）；mp4 直接截 video element 嗰格 */
+/* 海報用「而家播到嗰格」：Stream 片記 uid＋秒數（0.01 秒精度，?time= 攞嗰一刻嘅縮圖）；mp4 直接截 video element 嗰格 */
 var _shareUid="",_shareTime=0,_shareFrame="";
 function snapShareFrame(i,v){
  _shareUid="";_shareTime=0;_shareFrame="";
@@ -1346,7 +1346,7 @@ function snapShareFrame(i,v){
   var w=document.querySelector('.vwrap[data-i="'+i+'"]');
   if(v&&v.stream&&v.uid){
    _shareUid=v.uid;
-   if(w&&w._sp&&w._sp.currentTime>0)_shareTime=Math.floor(w._sp.currentTime);
+   if(w&&w._sp&&w._sp.currentTime>0)_shareTime=Math.round(w._sp.currentTime*100)/100;
   }else if(w){
    var vd=w.querySelector("video");
    if(vd&&vd.videoWidth>0&&vd.currentTime>0){
