@@ -1421,8 +1421,8 @@ function openWx(){
   var isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||"");
   document.getElementById("wxgowx").style.display=isMobile?"block":"none";
   document.getElementById("wxsteps").innerHTML=isMobile
-    ?"撳上面粒掣跳去微信，喺對話框貼上傳送，對方會見到呢條片嘅標題＋縮圖卡片"
-    :"段文字已經幫你 copy 好：去微信，喺對話框貼上傳送，對方會見到呢條片嘅標題＋縮圖卡片";
+    ?"撳上面粒掣跳去微信，喺對話框貼上傳送，對方撳條連結即刻睇得"
+    :"段文字已經幫你 copy 好：去微信，喺對話框貼上傳送，對方撳條連結即刻睇得";
   var box=document.getElementById("wxqr");box.style.display="none";box.innerHTML="";
   document.getElementById("wxqrtoggle").innerHTML="冇裝微信 App？用 QR code（另一部手機掃）▾";
   document.getElementById("mask").classList.add("show");
