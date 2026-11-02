@@ -949,6 +949,7 @@ function wireStreamSDK(w,im,i,trySound){
 }
 /* 睇完自動播下一條（跳過廣告位） */
 function playNextVideo(curIdx){
+ if(_shareOpen)return; /* 分享開住：唔好自動跳去播下一條 */
  try{
   var cards=document.getElementById("feed").querySelectorAll(".vcard");
   var n=curIdx+1;
@@ -1030,6 +1031,7 @@ function initFeedObserver(){
  if(!feed||!window.IntersectionObserver)return;
  if(_feedObs)_feedObs.disconnect();
  _feedObs=new IntersectionObserver(function(es){
+  if(_shareOpen)return; /* 分享開住：唔自動播，連廣告位嘅 pauseAllV 都唔做（保住 pause 緊嗰條片嘅進度） */
   var best=null,br=0;
   es.forEach(function(e){if(e.isIntersecting&&e.intersectionRatio>br){br=e.intersectionRatio;best=e.target;}});
   if(!best||br<0.5)return;
@@ -1336,9 +1338,12 @@ function ptab(el,which){
 }
 /* 分享：每條片用獨立分享卡片（og 標籤），微信/WhatsApp 會顯示標題＋縮圖 */
 var _shareTitle="";var _shareUrl="";var _shareThumb="";
+/* 分享 sheet 開住嗰陣：feed 唔可以自動播（observer／播完自動跳下一條全部停），等用戶閂咗分享先 */
+var _shareOpen=false;
 function openShareV(i){
  var v=VIDEOS[i];if(!v)return;
  pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
+ _shareOpen=true; /* 分享開住：feed 唔自動播 */
  _shareTitle=v.t||"講圈短片";
  var url;
  var sid=(v.stream&&v.uid)?v.uid:(v.id||"");
@@ -1361,6 +1366,7 @@ function openShareV(i){
 }
 function openShare(title){_shareTitle=title||"講圈短片";
  pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
+ _shareOpen=true; /* 分享開住：feed 唔自動播 */
  var url=location.origin+"/api/share-card?t="+encodeURIComponent(_shareTitle);
  document.getElementById("sharelink").value=url;
  _shareUrl=url;_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
@@ -1379,12 +1385,13 @@ function shareTo(which){
  else if(which==="wx") openWx();
 }
 /* 微信分享：複製連結為主，QR code 按需展開 */
-function openWx(){  closeShare();  var box=document.getElementById("wxqr");box.style.display="none";box.innerHTML="";  document.getElementById("wxqrtoggle").innerHTML="冇法複製？用 QR code（另一部手機掃）▾";  document.getElementById("mask").classList.add("show");  document.getElementById("wxsheet").classList.add("show"); }
+function openWx(){  closeShare();  _shareOpen=true;  var box=document.getElementById("wxqr");box.style.display="none";box.innerHTML="";  document.getElementById("wxqrtoggle").innerHTML="冇法複製？用 QR code（另一部手機掃）▾";  document.getElementById("mask").classList.add("show");  document.getElementById("wxsheet").classList.add("show"); }
 function toggleWxQr(){  var box=document.getElementById("wxqr"),tg=document.getElementById("wxqrtoggle");  if(box.style.display!=="none"&&box.innerHTML){box.style.display="none";box.innerHTML="";tg.innerHTML="冇法複製？用 QR code（另一部手機掃）▾";return;}  var url=document.getElementById("sharelink").value||location.href;  box.innerHTML="";  try{new QRCode(box,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});}  catch(e){box.innerHTML='<div style="padding:60px 20px;text-align:center;color:#999;font-size:13px">QR code 載入失敗<br>請用「複製連結」貼去微信</div>';}  box.style.display="block";tg.innerHTML="收起 QR code ▴"; }
-function closePoster(){  var m=document.getElementById("mask");if(m)m.classList.remove("show");  var s=document.getElementById("postersheet");if(s)s.classList.remove("show"); }
+function closePoster(){  _shareOpen=false;  var m=document.getElementById("mask");if(m)m.classList.remove("show");  var s=document.getElementById("postersheet");if(s)s.classList.remove("show"); }
 /* 分享海報：縮圖＋標題＋QR code，長按儲存發去微信／朋友圈 */
 function makePoster(){
   closeShare();
+  _shareOpen=true; /* 海報生成緊＋海報 sheet 開住：feed 唔自動播 */
   var title=_shareTitle||"講圈短片";
   var url=_shareUrl||document.getElementById("sharelink").value||location.href;
   var thumb=_shareThumb||"https://picsum.photos/seed/kongtalk/800/450";
@@ -1448,7 +1455,7 @@ function makePoster(){
   }
   thumbImg.onload=go;thumbImg.onerror=go;thumbImg.src=thumb;setTimeout(go,7000);
 }
-function closeWx(){document.getElementById("mask").classList.remove("show");document.getElementById("wxsheet").classList.remove("show");}
+function closeWx(){_shareOpen=false;document.getElementById("mask").classList.remove("show");document.getElementById("wxsheet").classList.remove("show");}
 /* 微信內開啟提示 */
 if(/MicroMessenger/i.test(navigator.userAgent)){
  var _wxt=document.createElement("div");_wxt.className="wxtip";
@@ -1464,7 +1471,7 @@ function copyLink(){
  }else{fallback();}
  function fallback(){var i=document.getElementById("sharelink");i.select();try{document.execCommand("copy");}catch(e){}done();}
 }
-function closeShare(){document.getElementById("mask").classList.remove("show");document.getElementById("sheet").classList.remove("show");}
+function closeShare(){_shareOpen=false;document.getElementById("mask").classList.remove("show");document.getElementById("sheet").classList.remove("show");}
 function toast(msg){
  var t=document.getElementById("toast");
  t.textContent=msg;t.classList.add("show");
