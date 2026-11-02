@@ -1399,7 +1399,7 @@ function makePoster(){
   var W=900,H=1240,cv=document.createElement("canvas");cv.width=W;cv.height=H;
   var x=cv.getContext("2d");
   var FONT="PingFang HK,Microsoft JhengHei,-apple-system,sans-serif";
-  function wrap(t,maxW,fs,maxL){x.font="700 "+fs+"px "+FONT;var ch=String(t).split(""),ls=[],ln="";for(var i=0;i<ch.length;i++){var s=ln+ch[i];if(x.measureText(s).width>maxW&&ln){ls.push(ln);ln=ch[i];if(ls.length>=maxL){ln=ln+"…";break;}}else{ln=s;}}ls.push(ln);return ls;}
+  function wrap(t,maxW,fs,maxL){x.font="700 "+fs+"px "+FONT;var ch=String(t).split(""),ls=[],ln="";for(var i=0;i<ch.length;i++){var s=ln+ch[i];if(x.measureText(s).width>maxW&&ln){if(ls.length>=maxL-1){while(ln.length>0&&x.measureText(ln+"…").width>maxW)ln=ln.slice(0,-1);ln=ln+"…";break;}ls.push(ln);ln=ch[i];}else{ln=s;}}ls.push(ln);return ls;}
   function drawCover(img){var s=Math.max(W/img.width,600/img.height),w=W/s,h=600/s,sx=(img.width-w)/2,sy=(img.height-h)/2;x.drawImage(img,sx,sy,w,h,0,0,W,600);}
   var thumbImg=new Image();thumbImg.crossOrigin="anonymous";var settled=false;
   function render(qrEl){
