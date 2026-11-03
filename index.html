@@ -1382,6 +1382,7 @@ function openShareV(i){
    +"&vsrc="+encodeURIComponent(vsrc0);
  }
  url+="&others="+((_settings.shareOthers)?"1":"0");
+ if(_shareUid&&_shareUid===sid&&_shareTime>0)url+="&ts="+_shareTime; /* WhatsApp/FB 張卡都用分享嗰一刻嘅圖 */
  document.getElementById("sharelink").value=url;
  _shareUrl=url;try{_shareThumb=videoThumb(v)||"";}catch(_e){_shareThumb="";}if(!_shareThumb)_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
  document.getElementById("mask").classList.add("show");
