@@ -39,6 +39,7 @@ module.exports = async (req, res) => {
   var img = String(q.img || "");
   var p = String(q.p || "").slice(0, 30);
   var vsrc = String(q.vsrc || "");
+  var ts = parseFloat(q.ts); /* 分享嗰刻播到第幾秒：og:image 用嗰一刻嘅縮圖（同海報一致） */
   var ownerPiao = "84a113104747"; // demo 影片 fallback
 
   if (demo) {
@@ -59,6 +60,7 @@ module.exports = async (req, res) => {
       }
     } catch (e) { /* 查唔到就用參數/fallback，卡照出 */ }
     img = "https://videodelivery.net/" + uid + "/thumbnails/thumbnail.jpg";
+    if (isFinite(ts) && ts > 0 && ts < 100000) img += "?time=" + ts + "s"; /* 嗰一刻嘅縮圖 */
     vsrc = "https://videodelivery.net/" + uid + "/manifest/video.m3u8"; /* HLS：mp4 下載多數冇開（404），m3u8 先係穩陣 */
   }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
