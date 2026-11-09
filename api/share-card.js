@@ -126,6 +126,11 @@ module.exports = async (req, res) => {
   if (showAd && String(q.og || "") === "portrait" && uid === COMPOSITE_UID) {
     img = "https://ktalk.hk/assets/og-portrait-huoqubing.jpg";
   }
+  /* 預設合併圖（2026-11-10，江仔揀咗畫中畫呢張）：admin 分享呢條《霍去病》片嗰陣，唔使加 ?og= 參數都會用畫中畫呢張做 og:image；
+     想試其他版本先至加 ?og=composite / ?og=portrait。 */
+  if (showAd && uid === COMPOSITE_UID && !q.og) {
+    img = "https://ktalk.hk/assets/og-pip-huoqubing.jpg";
+  }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
   if (!/^https:\/\//i.test(vsrc)) vsrc = "";
   // 只接受 https 圖片，防 XSS / open redirect
