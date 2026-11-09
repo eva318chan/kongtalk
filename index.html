@@ -1343,14 +1343,6 @@ function ptab(el,which){
 var _shareTitle="";var _shareUrl="";var _shareThumb="";
 /* 海報用「而家播到嗰格」：Stream 片記 uid＋秒數（0.01 秒精度，?time= 攞嗰一刻嘅縮圖）；mp4 直接截 video element 嗰格 */
 var _shareUid="",_shareTime=0,_shareFrame="";
-/* 廣告測試期間全開（2026-11-10，江仔話要 &ad=1 全時間有，否則測試唔到）：全部分享都帶 &ad=1，唔理係咪 admin。
-   下面 ADMIN_EMAILS／isAdminSharer() 係之前「只限 admin 分享先有廣告」嗰個機制，暫停咗未用；
-   江仔之後話要改返 admin 先有限，先至將下面幾處改返用 isAdminSharer() 判斷。 */
-var ADMIN_EMAILS=[];
-function isAdminSharer(){
- try{ return !!(_user && _user.email && ADMIN_EMAILS.indexOf(String(_user.email).toLowerCase()) !== -1); }
- catch(e){ return false; }
-}
 function snapShareFrame(i,v){
  _shareUid="";_shareTime=0;_shareFrame="";
  try{
@@ -1391,7 +1383,6 @@ function openShareV(i){
  }
  url+="&others="+((_settings.shareOthers)?"1":"0");
  if(_shareUid&&_shareUid===sid&&_shareTime>0)url+="&ts="+_shareTime; /* WhatsApp/FB 張卡都用分享嗰一刻嘅圖 */
- url+="&ad=1"; /* 測試期間：全部分享都帶 &ad=1 */
  document.getElementById("sharelink").value=url;
  _shareUrl=url;try{_shareThumb=videoThumb(v)||"";}catch(_e){_shareThumb="";}if(!_shareThumb)_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
  document.getElementById("mask").classList.add("show");
@@ -1402,7 +1393,6 @@ function openShare(title){_shareTitle=title||"講圈短片";
  pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
  _shareOpen=true; /* 分享開住：feed 唔自動播 */
  var url=location.origin+"/api/share-card?t="+encodeURIComponent(_shareTitle);
- url+="&ad=1"; /* 測試期間：全部分享都帶 &ad=1 */
  document.getElementById("sharelink").value=url;
  _shareUrl=url;_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
  document.getElementById("mask").classList.add("show");
