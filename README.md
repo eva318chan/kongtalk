@@ -27,7 +27,11 @@
 | `api/live.js` | 官方直播位設定：只有 official account 可開；`slots` 陣列加／減一行即加減直播位（支援 YouTube embed／Cloudflare Stream live） |
 | `api/direct-upload.js` | Cloudflare Stream 直傳簽名 |
 | `api/bump-play.js` | 播放次數統計 |
-| `api/share-card.js` | 分享卡片產生 |
+| `api/share-card.js` | 分享卡片產生；真人㩒入分享 link 嗰陣記一次 click（國家／城市／裝置，爬蟲唔計） |
+| `api/click-stats.js` | 逐條片點擊統計 JSON：`GET /api/click-stats?v=<uid>` |
+| `api/log-share.js` | 記一次分享（邊條片、wa／fb／wx 渠道） |
+| `api/report.js` | 分享報告頁，唔使登入 Supabase：`https://ktalk.hk/api/report`（總覽）／`?v=<uid>`（詳細：按國家＋近 30 日按日） |
+| `supabase/migrations/20261110_share_clicks.sql` | 點擊＋分享追蹤嘅 SQL（表＋function），要喺 Supabase SQL Editor 行一次先有數 |
 | `assets/fumanting-lamb-pot.jpg` | 分享頁底部廣告圖（測試）：福滿庭羊腩煲海報 |
 | `api/delete-video.js` | 刪除影片（含 Stream 及資料庫清理） |
 | `api/delete-account.js` | 刪除帳號 |
@@ -57,6 +61,13 @@
 - `api/share-card.js` 落地頁最底（「睇埋我其他片」掣之下）有廣告位，現放福滿庭羊腩煲海報（`assets/fumanting-lamb-pot.jpg`，1080×1447）做測試。
 - 廣告圖全寬顯示（手機約 444×595px），上附「廣告」字樣。
 - WhatsApp 分享 demo（2026-11-10，江仔拍板）：手機撳 WhatsApp 分享，改用原生分享（`navigator.share` + 廣告圖 file），一次過送廣告圖 + 文字（caption 入面有條片 link），收訊息嗰邊喺 WhatsApp 入面直接見到廣告，唔使㩒 link。開分享 sheet 嗰陣預先攞定廣告圖（`prefetchAdFile()`）。唔支援原生分享／攞唔到圖就跌返 `wa.me` 文字 link；用戶自己取消分享唔跌返。注意：WhatsApp link preview 本身唔會喺對話入面直接播片，只顯示縮圖，要播片始終要㩒入去。
+
+## 分享報告（2026-11-10，江仔拍板：自家追蹤，唔用 Bitly）
+
+- 睇報告唔使登入 Supabase，直接開 `https://ktalk.hk/api/report`：每條片一行 — 播放／分享／分享 link 被㩒／最多人㩒嘅國家；撳入去有詳細（按國家＋近 30 日按日）。
+- 播放 = `videos.plays`（`bump-play` 計嘅播放次數）；分享 = 撳分享掣嗰陣經 `api/log-share.js` 記低（由呢個功能上線先開始計，之前嗰 46 次係舊版本地計數，唔係真數）；分享 link 被㩒 = 真人㩒入 `api/share-card` 嗰陣經 `ktalk.log_share_click` 記低，國家／城市由 Vercel geo header 嚟，WhatsApp／Facebook 攞 preview 嗰啲爬蟲唔計。
+- 全部係「次數」唔係「幾多個人」，因為觀眾多數冇登入，我哋亦唔存 IP 地址。
+- **行 SQL 先有數**：Supabase Dashboard → SQL Editor → 貼上 `supabase/migrations/20261110_share_clicks.sql` 成份 → Run。行之前，報告頁會顯示未設定，分享／點擊唔會入數；行完之後先開始計，之前嘅追唔返。
 
 <!-- rename-verified -->
 
