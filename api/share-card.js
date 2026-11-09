@@ -122,6 +122,10 @@ module.exports = async (req, res) => {
   if (showAd && String(q.og || "") === "pip" && uid === COMPOSITE_UID) {
     img = "https://ktalk.hk/assets/og-pip-huoqubing.jpg";
   }
+  /* 直式 demo：?og=portrait 嗰陣，og:image 用江仔 send 嚟嗰張 sample（上面直式片圖原比例、下面闊版廣告原比例，兩樣都冇拉闊冇壓扁），720x1233，只限呢條片，而且要有 &ad=1。 */
+  if (showAd && String(q.og || "") === "portrait" && uid === COMPOSITE_UID) {
+    img = "https://ktalk.hk/assets/og-portrait-huoqubing.jpg";
+  }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
   if (!/^https:\/\//i.test(vsrc)) vsrc = "";
   // 只接受 https 圖片，防 XSS / open redirect
@@ -177,7 +181,7 @@ module.exports = async (req, res) => {
     '<meta property="og:title" content="' + esc(t) + '">' +
     '<meta property="og:description" content="' + esc(desc) + '">' +
     '<meta property="og:image" content="' + esc(img) + '">' +
-    ((img.indexOf("og-composite") !== -1 || img.indexOf("og-pip") !== -1) ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : "") +
+    (img.indexOf("og-portrait") !== -1 ? '<meta property="og:image:width" content="720"><meta property="og:image:height" content="1233">' : (img.indexOf("og-composite") !== -1 || img.indexOf("og-pip") !== -1) ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : "") +
     '<meta property="og:url" content="' + esc(canon) + '">' +
     "</head>" +
     '<body style="margin:0;font-family:-apple-system,\'PingFang HK\',\'Microsoft JhengHei\',sans-serif;background:#f0f0f0">' +
