@@ -34,6 +34,7 @@
 | `supabase/migrations/20261110_share_clicks.sql` | 點擊＋分享追蹤嘅 SQL（表＋function），要喺 Supabase SQL Editor 行一次先有數 |
 | `assets/fumanting-lamb-pot.jpg` | 分享頁底部廣告圖（測試）：福滿庭羊腩煲海報 |
 | `assets/og-composite-huoqubing.jpg` | 合併 preview 圖 demo（1200×630，上面《霍去病》片圖、下面廣告價錢，148KB） |
+| `assets/og-pip-huoqubing.jpg` | 畫中畫 preview 圖 demo（1200×630，片圖全幅，細廣告貼喺右下角，125KB） |
 | `api/delete-video.js` | 刪除影片（含 Stream 及資料庫清理） |
 | `api/delete-account.js` | 刪除帳號 |
 | `deploy-test-bella.txt` | Deploy pipeline 測試檔（可安全刪除） |
@@ -64,6 +65,13 @@
 - WhatsApp 分享 demo（2026-11-10，江仔拍板）：手機撳 WhatsApp 分享，改用原生分享（`navigator.share` + 廣告圖 file），一次過送廣告圖 + 文字（caption 入面有條片 link），收訊息嗰邊喺 WhatsApp 入面直接見到廣告，唔使㩒 link。開分享 sheet 嗰陣預先攞定廣告圖（`prefetchAdFile()`）。唔支援原生分享／攞唔到圖就跌返 `wa.me` 文字 link；用戶自己取消分享唔跌返。注意：WhatsApp link preview 本身唔會喺對話入面直接播片，只顯示縮圖，要播片始終要㩒入去。
 - **江仔手機實測（2026-11-10）：原生分享廣告大圖出到，但片嘅 link preview 卡唔見咗** — WhatsApp 唔會為圖片 caption 入面條 link 生成 preview。所以原生分享同舊 wa.me 文字分享只能二揀一：前者有廣告大圖、冇片 preview；後者有片 preview、冇廣告。
 - 合併 preview 圖 demo（2026-11-10，江仔揀咗做嚟比較）：`assets/og-composite-huoqubing.jpg`（1200×630，上面片圖、下面廣告價錢，$268／$468 睇到）。分享 link 加 `&og=composite`（例如 `https://ktalk.hk/api/share-card?v=5d544e35c6580b7d361a3a39103c7286&others=1&og=composite`），`api/share-card.js` 就會用呢張合成圖做 `og:image`，用返舊 wa.me 文字分享，WhatsApp 會顯示一張同時有片圖＋廣告嘅 preview 卡。只限呢條《霍去病》片，落地頁本身唔變。呢個係 demo 比較用，未拍板做預設。
+- 畫中畫 preview 圖 demo（2026-11-10，江仔提出）：`assets/og-pip-huoqubing.jpg`（1200×630，片圖全幅，細廣告貼喺右下角，$268／$468 睇到）。分享 link 加 `&og=pip` 用呢張圖。注意：手機 preview 細嗰陣，右下角細廣告啲字會好細；WhatsApp 細 view 裁剪嗰陣，右下角有機會裁走一部分。同 composite 一樣只限呢條片，demo 比較用，未拍板做預設。
+
+## 廣告只限 admin 分享（2026-11-10，江仔提出）
+
+- 而家 code 入面本來冇 admin role 呢個概念，所以用登入 email 認 admin：`index.html` 入面 `ADMIN_EMAILS` 嗰個 list，加邊個 email，邊個登入分享先會帶廣告。**呢個 list 而家係空嘅，等江仔確認邊個 email 係 admin 先加。**
+- 機制：admin 撳分享，分享 link 會帶 `&ad=1`；`api/share-card.js` 見到 `&ad=1` 先顯示落地頁底部廣告，同埋先至用 `?og=composite`／`?og=pip` 嗰啲合成圖做 `og:image`。普通用戶分享條 link 冇 `&ad=1`，就係普通分享：WhatsApp 原生分享唔會附廣告圖（跌返 wa.me 文字分享，片 preview 照有），落地頁亦唔顯示廣告。
+- 注意兩點：① 呢個係產品規則，唔係保安邊界 — 識得手動加 `&ad=1` 嘅人都可以令條 link 顯示廣告；② 之前已經分享出去、冇 `&ad=1` 嗰啲舊 link，之後開返唔會再顯示廣告，要 admin 重新分享一次先有。
 
 ## 分享報告（2026-11-10，江仔拍板：自家追蹤，唔用 Bitly）
 
