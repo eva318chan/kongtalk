@@ -107,6 +107,13 @@ module.exports = async (req, res) => {
   }
   /* 真人㩒入先記一次 click：vkey 冇就用標題做 key，等舊式 ?t= link 都計到 */
   try { await logShareClick(req, vkey || ("t:" + t), t); } catch (e) { /* 記唔到都照出頁 */ }
+  // 合併 preview 圖 demo：?og=composite 嗰陣，og:image 用預先合成嘅 1200x630 圖（上面片圖、下面廣告價錢），
+  // 等 WhatsApp 用返舊 wa.me 文字分享都有廣告睇。只限呢條《霍去病》片，其他片唔受影響。
+  // 落地頁本身唔變（照播片、下面照有廣告大圖），淨係改 og:image。
+  var COMPOSITE_UID = "5d544e35c6580b7d361a3a39103c7286";
+  if (String(q.og || "") === "composite" && uid === COMPOSITE_UID) {
+    img = "https://ktalk.hk/assets/og-composite-huoqubing.jpg";
+  }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
   if (!/^https:\/\//i.test(vsrc)) vsrc = "";
   // 只接受 https 圖片，防 XSS / open redirect
@@ -161,6 +168,7 @@ module.exports = async (req, res) => {
     '<meta property="og:title" content="' + esc(t) + '">' +
     '<meta property="og:description" content="' + esc(desc) + '">' +
     '<meta property="og:image" content="' + esc(img) + '">' +
+    (img.indexOf("og-composite") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : "") +
     '<meta property="og:url" content="' + esc(canon) + '">' +
     "</head>" +
     '<body style="margin:0;font-family:-apple-system,\'PingFang HK\',\'Microsoft JhengHei\',sans-serif;background:#f0f0f0">' +
