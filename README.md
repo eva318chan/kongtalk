@@ -64,8 +64,8 @@
 
 - `api/share-card.js` 落地頁最底（「睇埋我其他片」掣之下）有廣告位，現放福滿庭羊腩煲海報（`assets/fumanting-lamb-pot.jpg`，1080×1447）做測試。
 - 廣告圖全寬顯示（手機約 444×595px），上附「廣告」字樣。
-- WhatsApp 分享 demo（2026-11-10，江仔拍板）：手機撳 WhatsApp 分享，改用原生分享（`navigator.share` + 廣告圖 file），一次過送廣告圖 + 文字（caption 入面有條片 link），收訊息嗰邊喺 WhatsApp 入面直接見到廣告，唔使㩒 link。開分享 sheet 嗰陣預先攞定廣告圖（`prefetchAdFile()`）。唔支援原生分享／攞唔到圖就跌返 `wa.me` 文字 link；用戶自己取消分享唔跌返。注意：WhatsApp link preview 本身唔會喺對話入面直接播片，只顯示縮圖，要播片始終要㩒入去。
-- **江仔手機實測（2026-11-10）：原生分享廣告大圖出到，但片嘅 link preview 卡唔見咗** — WhatsApp 唔會為圖片 caption 入面條 link 生成 preview。所以原生分享同舊 wa.me 文字分享只能二揀一：前者有廣告大圖、冇片 preview；後者有片 preview、冇廣告。
+- WhatsApp 分享（2026-11-10，江仔拍板用 `wa.me` 文字 link，唔再用原生分享附廣告圖）：撳 WhatsApp 分享掣會開 `wa.me/?text=...`，文字入面有條片 link，WhatsApp 會自己生成 preview 卡（方形合併圖＋標題＋簡介），效果同手動 copy link 貼入 WhatsApp 一模一樣，成張卡㩒得入去。注意：WhatsApp link preview 本身唔會喺對話入面直接播片，只顯示縮圖，要播片始終要㩒入去。
+- **江仔手機實測（2026-11-10）：之前原生分享（`navigator.share` + 廣告圖 file）廣告大圖出到，但片嘅 link preview 卡唔見咗** — WhatsApp 唔會為圖片 caption 入面條 link 生成 preview。江仔 13:17 再實測對比：撳 WhatsApp 掣（原生分享）淨係出到直式廣告大圖、冇 preview 卡；手動 copy link 貼入 WhatsApp 就出到方形合併圖 preview 卡＋標題＋簡介。所以改返用 `wa.me` 文字 link，等兩個做法結果一致。原生分享嗰套 code（`prefetchAdFile`／`_adFile`）已刪除。
 - 合併 preview 圖（2026-11-10）：`assets/og-composite-huoqubing.jpg`（1200×1140，上面片圖、下面廣告價錢，$268／$468 睇到）。分享 link 加 `&og=composite` 用呢張圖。只限呢條片，落地頁本身唔變。**做圖鐵律（江仔兩度糾正）：合併兩張圖嗰陣，片圖一定要保持原比例** — 第一版將片圖壓扁到一半高、將廣告由 497px 高壓扁到 312px，睇落拉闊咗；呢版加高成 1140px，片圖用返原比例全幅（裁走咗縮圖本身上下嘅黑邊，淨返畫面），廣告嗰截用返 2:1 擷圖等比放大，兩樣都冇拉闊冇壓扁。
 - 方形 preview 圖（2026-11-10，江仔 send 咗佢嗰張 sample 並排比較，話我之前嗰版仍然唔啱原圖比例）：`assets/og-square-huoqubing.jpg`（1200×1200，231KB）。跟足 sample（image-23，1536×1536）嘅尺寸：成張正方形，上格係《霍去病》title card、下格係闊版廣告，兩格都係原比例，位置同黑邊都跟 sample（上格 y 47-547、下格 y 594-1128）。下格用嘅係江仔 sample（image-24）嗰張闊版廣告：單點 $268、超抵套餐特價 $398。admin 分享呢條片（帶 `&ad=1`）嗰陣，唔使加 `?og=` 參數都會用呢張做 `og:image`，即係而家嘅預設合併圖。只限呢條片。
 - 畫中畫 preview 圖 demo（2026-11-10，江仔提出）：`assets/og-pip-huoqubing.jpg`（1200×630，片圖全幅，細廣告貼喺右下角，$268／$468 睇到）。分享 link 加 `&og=pip` 用呢張圖。注意：手機 preview 細嗰陣，右下角細廣告啲字會好細；WhatsApp 細 view 裁剪嗰陣，右下角有機會裁走一部分。只限呢條片，係合併圖嘅另一個版本，唔係預設。
@@ -73,7 +73,7 @@
 
 ## 廣告全開測試中（2026-11-10，江仔話要 &ad=1 全時間有，否則測試唔到）
 
-- 而家全部分享都帶 `&ad=1`：`index.html` 撳分享嗰陣一定加 `&ad=1`，WhatsApp 原生分享一定附廣告圖；`api/share-card.js` 冇 `&ad=` 參數嗰陣都當有廣告（預設顯示），淨係明確寫 `&ad=0` 先唔顯示。所以舊 link（冇 `&ad=1` 嗰啲）開返都會顯示廣告同方形 preview 圖，唔使重新分享。
+- 而家全部分享都帶 `&ad=1`：`index.html` 撳分享嗰陣一定加 `&ad=1`；`api/share-card.js` 冇 `&ad=` 參數嗰陣都當有廣告（預設顯示），淨係明確寫 `&ad=0` 先唔顯示。所以舊 link（冇 `&ad=1` 嗰啲）開返都會顯示廣告同方形 preview 圖，唔使重新分享。
 - 之前「只限 admin 分享先有廣告」嗰個機制暫停咗：`index.html` 入面 `ADMIN_EMAILS`／`isAdminSharer()` 留返喺度未用，個 list 而家係空嘅；江仔之後話要改返 admin 先有限，先至將分享嗰幾處改返用 `isAdminSharer()` 判斷，同埋將 `share-card.js` 嘅 `showAd` 預設改返 `false`。
 - 注意：呢個係產品規則，唔係保安邊界 — 識得手動加 `&ad=0` 嘅人都可以令條 link 唔顯示廣告。
 
