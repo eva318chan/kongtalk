@@ -110,10 +110,10 @@ module.exports = async (req, res) => {
   // 合併 preview 圖 demo：?og=composite 嗰陣，og:image 用預先合成嘅 1200x630 圖（上面片圖、下面廣告價錢），
   // 等 WhatsApp 用返舊 wa.me 文字分享都有廣告睇。只限呢條《霍去病》片，其他片唔受影響。
   // 落地頁本身唔變（照播片、下面照有廣告大圖），淨係改 og:image。
-  /* 廣告只限 admin 分享：分享嗰陣先知分享者係邊個，所以 admin 分享條 link 會帶 &ad=1；
-     收訊息嗰邊開 link 嗰陣，後端只係睇條 link 有冇 &ad=1，冇就當普通分享，唔顯示廣告。
-     注意：呢個係產品規則，唔係保安邊界 — 識得手動加 &ad=1 嘅人都可以令條 link 顯示廣告。 */
-  var showAd = String(q.ad || "") === "1";
+  /* 測試期間廣告全開（2026-11-10，江仔話要 &ad=1 全時間有，否則測試唔到）：
+     冇 &ad= 參數嗰陣都當有廣告（showAd 預設 true），淨係明確寫 &ad=0 先唔顯示。
+     之前「只限 admin 分享先有廣告」嗰個機制暫停咗，ADMIN_EMAILS 未填，等江仔之後話要改返 admin 先有限先再開。 */
+  var showAd = String(q.ad || "1") === "1";
   var COMPOSITE_UID = "5d544e35c6580b7d361a3a39103c7286";
   if (showAd && String(q.og || "") === "composite" && uid === COMPOSITE_UID) {
     img = "https://ktalk.hk/assets/og-composite-huoqubing.jpg";
@@ -175,7 +175,7 @@ module.exports = async (req, res) => {
       'border:1px solid #07c160;border-radius:28px;padding:14px;margin-top:12px;text-decoration:none;font-size:16px;font-weight:700">睇埋我其他片</a>';
   }
   // 分享頁底部廣告（測試）：福滿庭羊腩煲海報，置於「睇埋我其他片」掣之下。
-  // 淨係 admin 分享嗰條 link（帶 &ad=1）先顯示；普通用戶分享就係普通分享頁，冇廣告。
+  // 測試期間全部 link 都顯示（預設 showAd=true，淨係 &ad=0 先唔顯示）。
   var ad = showAd ?
     '<div style="margin-top:22px;border-top:1px solid #eee;padding-top:14px">' +
     '<div style="font-size:11px;color:#aaa;text-align:center;margin-bottom:8px">廣告</div>' +
