@@ -110,9 +110,17 @@ module.exports = async (req, res) => {
   // 合併 preview 圖 demo：?og=composite 嗰陣，og:image 用預先合成嘅 1200x630 圖（上面片圖、下面廣告價錢），
   // 等 WhatsApp 用返舊 wa.me 文字分享都有廣告睇。只限呢條《霍去病》片，其他片唔受影響。
   // 落地頁本身唔變（照播片、下面照有廣告大圖），淨係改 og:image。
+  /* 廣告只限 admin 分享：分享嗰陣先知分享者係邊個，所以 admin 分享條 link 會帶 &ad=1；
+     收訊息嗰邊開 link 嗰陣，後端只係睇條 link 有冇 &ad=1，冇就當普通分享，唔顯示廣告。
+     注意：呢個係產品規則，唔係保安邊界 — 識得手動加 &ad=1 嘅人都可以令條 link 顯示廣告。 */
+  var showAd = String(q.ad || "") === "1";
   var COMPOSITE_UID = "5d544e35c6580b7d361a3a39103c7286";
-  if (String(q.og || "") === "composite" && uid === COMPOSITE_UID) {
+  if (showAd && String(q.og || "") === "composite" && uid === COMPOSITE_UID) {
     img = "https://ktalk.hk/assets/og-composite-huoqubing.jpg";
+  }
+  /* PiP demo：?og=pip 嗰陣，og:image 用畫中畫圖（片圖全幅，細廣告貼喺右下角），同 composite 一樣只限呢條片，而且要有 &ad=1。 */
+  if (showAd && String(q.og || "") === "pip" && uid === COMPOSITE_UID) {
+    img = "https://ktalk.hk/assets/og-pip-huoqubing.jpg";
   }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
   if (!/^https:\/\//i.test(vsrc)) vsrc = "";
@@ -152,12 +160,13 @@ module.exports = async (req, res) => {
       '<a href="https://ktalk.hk/#u=' + ownerPiao + '" style="display:block;text-align:center;background:#fff;color:#07c160;' +
       'border:1px solid #07c160;border-radius:28px;padding:14px;margin-top:12px;text-decoration:none;font-size:16px;font-weight:700">睇埋我其他片</a>';
   }
-  // 分享頁底部廣告（測試）：福滿庭羊腩煲海報，置於「睇埋我其他片」掣之下
-  var ad =
+  // 分享頁底部廣告（測試）：福滿庭羊腩煲海報，置於「睇埋我其他片」掣之下。
+  // 淨係 admin 分享嗰條 link（帶 &ad=1）先顯示；普通用戶分享就係普通分享頁，冇廣告。
+  var ad = showAd ?
     '<div style="margin-top:22px;border-top:1px solid #eee;padding-top:14px">' +
     '<div style="font-size:11px;color:#aaa;text-align:center;margin-bottom:8px">廣告</div>' +
     '<img src="https://ktalk.hk/assets/fumanting-lamb-pot.jpg" style="width:100%;display:block;border-radius:10px" alt="福滿庭 爆香羊腩煲">' +
-    "</div>";
+    "</div>" : "";
   var html =
     '<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -168,7 +177,7 @@ module.exports = async (req, res) => {
     '<meta property="og:title" content="' + esc(t) + '">' +
     '<meta property="og:description" content="' + esc(desc) + '">' +
     '<meta property="og:image" content="' + esc(img) + '">' +
-    (img.indexOf("og-composite") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : "") +
+    ((img.indexOf("og-composite") !== -1 || img.indexOf("og-pip") !== -1) ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : "") +
     '<meta property="og:url" content="' + esc(canon) + '">' +
     "</head>" +
     '<body style="margin:0;font-family:-apple-system,\'PingFang HK\',\'Microsoft JhengHei\',sans-serif;background:#f0f0f0">' +
