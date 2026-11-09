@@ -33,6 +33,7 @@
 | `api/report.js` | 分享報告頁，唔使登入 Supabase：`https://ktalk.hk/api/report`（總覽）／`?v=<uid>`（詳細：按國家＋近 30 日按日） |
 | `supabase/migrations/20261110_share_clicks.sql` | 點擊＋分享追蹤嘅 SQL（表＋function），要喺 Supabase SQL Editor 行一次先有數 |
 | `assets/fumanting-lamb-pot.jpg` | 分享頁底部廣告圖（測試）：福滿庭羊腩煲海報 |
+| `assets/og-composite-huoqubing.jpg` | 合併 preview 圖 demo（1200×630，上面《霍去病》片圖、下面廣告價錢，148KB） |
 | `api/delete-video.js` | 刪除影片（含 Stream 及資料庫清理） |
 | `api/delete-account.js` | 刪除帳號 |
 | `deploy-test-bella.txt` | Deploy pipeline 測試檔（可安全刪除） |
@@ -61,6 +62,8 @@
 - `api/share-card.js` 落地頁最底（「睇埋我其他片」掣之下）有廣告位，現放福滿庭羊腩煲海報（`assets/fumanting-lamb-pot.jpg`，1080×1447）做測試。
 - 廣告圖全寬顯示（手機約 444×595px），上附「廣告」字樣。
 - WhatsApp 分享 demo（2026-11-10，江仔拍板）：手機撳 WhatsApp 分享，改用原生分享（`navigator.share` + 廣告圖 file），一次過送廣告圖 + 文字（caption 入面有條片 link），收訊息嗰邊喺 WhatsApp 入面直接見到廣告，唔使㩒 link。開分享 sheet 嗰陣預先攞定廣告圖（`prefetchAdFile()`）。唔支援原生分享／攞唔到圖就跌返 `wa.me` 文字 link；用戶自己取消分享唔跌返。注意：WhatsApp link preview 本身唔會喺對話入面直接播片，只顯示縮圖，要播片始終要㩒入去。
+- **江仔手機實測（2026-11-10）：原生分享廣告大圖出到，但片嘅 link preview 卡唔見咗** — WhatsApp 唔會為圖片 caption 入面條 link 生成 preview。所以原生分享同舊 wa.me 文字分享只能二揀一：前者有廣告大圖、冇片 preview；後者有片 preview、冇廣告。
+- 合併 preview 圖 demo（2026-11-10，江仔揀咗做嚟比較）：`assets/og-composite-huoqubing.jpg`（1200×630，上面片圖、下面廣告價錢，$268／$468 睇到）。分享 link 加 `&og=composite`（例如 `https://ktalk.hk/api/share-card?v=5d544e35c6580b7d361a3a39103c7286&others=1&og=composite`），`api/share-card.js` 就會用呢張合成圖做 `og:image`，用返舊 wa.me 文字分享，WhatsApp 會顯示一張同時有片圖＋廣告嘅 preview 卡。只限呢條《霍去病》片，落地頁本身唔變。呢個係 demo 比較用，未拍板做預設。
 
 ## 分享報告（2026-11-10，江仔拍板：自家追蹤，唔用 Bitly）
 
