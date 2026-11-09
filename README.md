@@ -28,16 +28,17 @@
 | `api/direct-upload.js` | Cloudflare Stream 直傳簽名 |
 | `api/bump-play.js` | 播放次數統計 |
 | `api/share-card.js` | 分享卡片產生 |
+| `assets/fumanting-lamb-pot.jpg` | 分享頁底部廣告圖（測試）：福滿庭羊腩煲海報 |
 | `api/delete-video.js` | 刪除影片（含 Stream 及資料庫清理） |
 | `api/delete-account.js` | 刪除帳號 |
 | `deploy-test-bella.txt` | Deploy pipeline 測試檔（可安全刪除） |
 
 ## 開發流程（已定）
 
-1. 光仔講需求；
+1. 江仔講需求；
 2. 直接改 code，commit＋push 上 `main`（唔開 PR、不經 review）；
 3. Vercel 自動 deploy；
-4. 通知光仔去 https://ktalk.hk 驗收。
+4. 通知江仔去 https://ktalk.hk 驗收。
 
 ## 本地開發
 
@@ -48,8 +49,13 @@
 
 - 改 `api/live.js` 的直播位後 push 即生效，唔使改前端。
 - 影片相關操作（上傳／刪除）同時牽涉 Cloudflare Stream 及 Supabase，兩邊要一齊處理，唔好只清一邊。
-- 用戶資料刪除（`delete-account.js`）係不可逆操作，執行前請光仔確認。
+- 用戶資料刪除（`delete-account.js`）係不可逆操作，執行前請江仔確認。
 - 唔好掂 `master` branch。
+
+## 分享頁廣告（測試，2026-11-10）
+
+- `api/share-card.js` 落地頁最底（「睇埋我其他片」掣之下）有廣告位，現放福滿庭羊腩煲海報（`assets/fumanting-lamb-pot.jpg`，1080×1447）做測試。
+- 廣告圖全寬顯示（手機約 444×595px），上附「廣告」字樣。
 
 <!-- rename-verified -->
 
