@@ -35,6 +35,7 @@
 | `assets/fumanting-lamb-pot.jpg` | 分享頁底部廣告圖（測試）：福滿庭羊腩煲海報 |
 | `assets/og-composite-huoqubing.jpg` | 合併 preview 圖 demo（1200×630，上面《霍去病》片圖、下面廣告價錢，148KB） |
 | `assets/og-pip-huoqubing.jpg` | 畫中畫 preview 圖 demo（1200×630，片圖全幅，細廣告貼喺右下角，125KB） |
+| `assets/og-portrait-huoqubing.jpg` | 直式 preview 圖 demo（720×1233，江仔 send 嚟嘅 sample：上面直式片圖原比例、下面闊版廣告原比例，124KB） |
 | `api/delete-video.js` | 刪除影片（含 Stream 及資料庫清理） |
 | `api/delete-account.js` | 刪除帳號 |
 | `deploy-test-bella.txt` | Deploy pipeline 測試檔（可安全刪除） |
@@ -66,6 +67,7 @@
 - **江仔手機實測（2026-11-10）：原生分享廣告大圖出到，但片嘅 link preview 卡唔見咗** — WhatsApp 唔會為圖片 caption 入面條 link 生成 preview。所以原生分享同舊 wa.me 文字分享只能二揀一：前者有廣告大圖、冇片 preview；後者有片 preview、冇廣告。
 - 合併 preview 圖 demo（2026-11-10，江仔揀咗做嚟比較）：`assets/og-composite-huoqubing.jpg`（1200×630，上面片圖、下面廣告價錢，$268／$468 睇到）。分享 link 加 `&og=composite`（例如 `https://ktalk.hk/api/share-card?v=5d544e35c6580b7d361a3a39103c7286&others=1&og=composite`），`api/share-card.js` 就會用呢張合成圖做 `og:image`，用返舊 wa.me 文字分享，WhatsApp 會顯示一張同時有片圖＋廣告嘅 preview 卡。只限呢條《霍去病》片，落地頁本身唔變。呢個係 demo 比較用，未拍板做預設。
 - 畫中畫 preview 圖 demo（2026-11-10，江仔提出）：`assets/og-pip-huoqubing.jpg`（1200×630，片圖全幅，細廣告貼喺右下角，$268／$468 睇到）。分享 link 加 `&og=pip` 用呢張圖。注意：手機 preview 細嗰陣，右下角細廣告啲字會好細；WhatsApp 細 view 裁剪嗰陣，右下角有機會裁走一部分。同 composite 一樣只限呢條片，demo 比較用，未拍板做預設。
+- 直式 preview 圖 demo（2026-11-10，江仔 send sample 嚟話要跟呢個做法）：`assets/og-portrait-huoqubing.jpg`（720×1233，上面直式片圖原比例、下面闊版廣告原比例，兩樣都冇拉闊冇壓扁，淨係等比縮細＋裁走 sample 底部黑邊）。分享 link 加 `&og=portrait` 用呢張圖。注意：江仔話之前合併圖嗰版將原圖拉闊咗（下面廣告嗰截由 497px 高壓扁到 312px）——呢版已修正，片圖同廣告都保持原比例。**價錢出入未核實：呢張 sample 嘅廣告係「超抵套餐」原價 $588 特價 $398（古法羊腩煲大、臘味炒芥蘭、椰香荔芋油鴨脾煲），同分享頁而家用緊嗰張直式海報「豪華套餐」特價 $468（臘味炒芥蘭、清蒸虎彬斑）唔同；邊個先係最新價錢，等江仔確認，分享頁海報暫時未換。**只限呢條片，demo 比較用，未拍板做預設。
 
 ## 廣告只限 admin 分享（2026-11-10，江仔提出）
 
