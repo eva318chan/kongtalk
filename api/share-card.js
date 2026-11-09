@@ -126,10 +126,15 @@ module.exports = async (req, res) => {
   if (showAd && String(q.og || "") === "portrait" && uid === COMPOSITE_UID) {
     img = "https://ktalk.hk/assets/og-portrait-huoqubing.jpg";
   }
-  /* 預設合併圖（2026-11-10，江仔話就係要呢張上下合併圖）：admin 分享呢條《霍去病》片嗰陣，唔使加 ?og= 參數都會用呢張合併圖做 og:image；
-     想試其他版本先至加 ?og=pip / ?og=portrait。 */
+  /* 方形版：?og=square 嗰陣，og:image 用江仔 sample 嗰個尺寸（1200x1200 正方形，上下兩格一樣大、全闊，
+     上格片圖原比例、下格廣告原比例），只限呢條片，而且要有 &ad=1。 */
+  if (showAd && String(q.og || "") === "square" && uid === COMPOSITE_UID) {
+    img = "https://ktalk.hk/assets/og-square-huoqubing.jpg";
+  }
+  /* 預設合併圖（2026-11-10，江仔話就要 sample 嗰個正方形尺寸）：admin 分享呢條《霍去病》片嗰陣，唔使加 ?og= 參數都會用呢張方形圖做 og:image；
+     想試其他版本先至加 ?og=composite / ?og=pip / ?og=portrait。 */
   if (showAd && uid === COMPOSITE_UID && !q.og) {
-    img = "https://ktalk.hk/assets/og-composite-huoqubing.jpg";
+    img = "https://ktalk.hk/assets/og-square-huoqubing.jpg";
   }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
   if (!/^https:\/\//i.test(vsrc)) vsrc = "";
@@ -186,7 +191,7 @@ module.exports = async (req, res) => {
     '<meta property="og:title" content="' + esc(t) + '">' +
     '<meta property="og:description" content="' + esc(desc) + '">' +
     '<meta property="og:image" content="' + esc(img) + '">' +
-    (img.indexOf("og-portrait") !== -1 ? '<meta property="og:image:width" content="720"><meta property="og:image:height" content="1233">' : img.indexOf("og-composite") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="1140">' : img.indexOf("og-pip") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : "") +
+    (img.indexOf("og-portrait") !== -1 ? '<meta property="og:image:width" content="720"><meta property="og:image:height" content="1233">' : img.indexOf("og-square") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="1200">' : img.indexOf("og-composite") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="1140">' : img.indexOf("og-pip") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : "") +
     '<meta property="og:url" content="' + esc(canon) + '">' +
     "</head>" +
     '<body style="margin:0;font-family:-apple-system,\'PingFang HK\',\'Microsoft JhengHei\',sans-serif;background:#f0f0f0">' +
