@@ -107,35 +107,6 @@ module.exports = async (req, res) => {
   }
   /* 真人㩒入先記一次 click：vkey 冇就用標題做 key，等舊式 ?t= link 都計到 */
   try { await logShareClick(req, vkey || ("t:" + t), t); } catch (e) { /* 記唔到都照出頁 */ }
-  // 合併 preview 圖 demo：?og=composite 嗰陣，og:image 用預先合成嘅 1200x630 圖（上面片圖、下面廣告價錢），
-  // 等 WhatsApp 用返舊 wa.me 文字分享都有廣告睇。只限呢條《霍去病》片，其他片唔受影響。
-  // 落地頁本身唔變（照播片、下面照有廣告大圖），淨係改 og:image。
-  /* 測試期間廣告全開（2026-11-10，江仔話要 &ad=1 全時間有，否則測試唔到）：
-     冇 &ad= 參數嗰陣都當有廣告（showAd 預設 true），淨係明確寫 &ad=0 先唔顯示。
-     之前「只限 admin 分享先有廣告」嗰個機制暫停咗，ADMIN_EMAILS 未填，等江仔之後話要改返 admin 先有限先再開。 */
-  var showAd = String(q.ad || "1") === "1";
-  var COMPOSITE_UID = "5d544e35c6580b7d361a3a39103c7286";
-  if (showAd && String(q.og || "") === "composite" && uid === COMPOSITE_UID) {
-    img = "https://ktalk.hk/assets/og-composite-huoqubing.jpg";
-  }
-  /* PiP demo：?og=pip 嗰陣，og:image 用畫中畫圖（片圖全幅，細廣告貼喺右下角），同 composite 一樣只限呢條片，而且要有 &ad=1。 */
-  if (showAd && String(q.og || "") === "pip" && uid === COMPOSITE_UID) {
-    img = "https://ktalk.hk/assets/og-pip-huoqubing.jpg";
-  }
-  /* 直式 demo：?og=portrait 嗰陣，og:image 用江仔 send 嚟嗰張 sample（上面直式片圖原比例、下面闊版廣告原比例，兩樣都冇拉闊冇壓扁），720x1233，只限呢條片，而且要有 &ad=1。 */
-  if (showAd && String(q.og || "") === "portrait" && uid === COMPOSITE_UID) {
-    img = "https://ktalk.hk/assets/og-portrait-huoqubing.jpg";
-  }
-  /* 方形版：?og=square 嗰陣，og:image 用江仔 sample 嗰個尺寸（1200x1200 正方形，上下兩格一樣大、全闊，
-     上格片圖原比例、下格廣告原比例），只限呢條片，而且要有 &ad=1。 */
-  if (showAd && String(q.og || "") === "square" && uid === COMPOSITE_UID) {
-    img = "https://ktalk.hk/assets/og-square-huoqubing.jpg";
-  }
-  /* 預設合併圖（2026-11-10，江仔話就要 sample 嗰個正方形尺寸）：admin 分享呢條《霍去病》片嗰陣，唔使加 ?og= 參數都會用呢張方形圖做 og:image；
-     想試其他版本先至加 ?og=composite / ?og=pip / ?og=portrait。 */
-  if (showAd && uid === COMPOSITE_UID && !q.og) {
-    img = "https://ktalk.hk/assets/og-square-huoqubing.jpg";
-  }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
   if (!/^https:\/\//i.test(vsrc)) vsrc = "";
   // 只接受 https 圖片，防 XSS / open redirect
@@ -148,7 +119,7 @@ module.exports = async (req, res) => {
   // WhatsApp 唔跟 og:url canonicalization，先至淨係 FB 出事。
   // 剔走 others（只影響落地頁多唔多粒掣，唔影響卡片內容），等 &others=1/0 唔會分開兩個 FB object。
   var canonQ = String(req.url || "").split("?")[1] || "";
-  canonQ = canonQ.split("&").filter(function (p) { return !/^others=/i.test(p) && !/^fbclid=/i.test(p); }).join("&");
+  canonQ = canonQ.split("&").filter(function (p) { return !/^others=/i.test(p) && !/^fbclid=/i.test(p) && !/^ad=/i.test(p) && !/^og=/i.test(p); }).join("&");
   var canon = "https://ktalk.hk/api/share-card" + (canonQ ? "?" + canonQ : "");
   var desc = "記錄港生活，分享港味道。" + (p ? "（" + p + "）" : "");
   var ogtype = vsrc ? "video.other" : "website";
@@ -174,13 +145,6 @@ module.exports = async (req, res) => {
       '<a href="https://ktalk.hk/#u=' + ownerPiao + '" style="display:block;text-align:center;background:#fff;color:#07c160;' +
       'border:1px solid #07c160;border-radius:28px;padding:14px;margin-top:12px;text-decoration:none;font-size:16px;font-weight:700">睇埋我其他片</a>';
   }
-  // 分享頁底部廣告（測試）：福滿庭羊腩煲海報，置於「睇埋我其他片」掣之下。
-  // 測試期間全部 link 都顯示（預設 showAd=true，淨係 &ad=0 先唔顯示）。
-  var ad = showAd ?
-    '<div style="margin-top:22px;border-top:1px solid #eee;padding-top:14px">' +
-    '<div style="font-size:11px;color:#aaa;text-align:center;margin-bottom:8px">廣告</div>' +
-    '<img src="https://ktalk.hk/assets/fumanting-lamb-pot.jpg" style="width:100%;display:block;border-radius:10px" alt="福滿庭 爆香羊腩煲">' +
-    "</div>" : "";
   var html =
     '<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -191,7 +155,6 @@ module.exports = async (req, res) => {
     '<meta property="og:title" content="' + esc(t) + '">' +
     '<meta property="og:description" content="' + esc(desc) + '">' +
     '<meta property="og:image" content="' + esc(img) + '">' +
-    (img.indexOf("og-portrait") !== -1 ? '<meta property="og:image:width" content="720"><meta property="og:image:height" content="1233">' : img.indexOf("og-square") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="1200">' : img.indexOf("og-composite") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="1140">' : img.indexOf("og-pip") !== -1 ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : "") +
     '<meta property="og:url" content="' + esc(canon) + '">' +
     "</head>" +
     '<body style="margin:0;font-family:-apple-system,\'PingFang HK\',\'Microsoft JhengHei\',sans-serif;background:#f0f0f0">' +
@@ -208,7 +171,6 @@ module.exports = async (req, res) => {
     '<div style="font-size:17px;font-weight:700">' + esc(t) + "</div>" +
     '<div style="color:#888;font-size:13px;margin-top:6px">' + esc(desc) + "</div>" +
     btn +
-    ad +
     (vsrc && !uid
       ? '<script>(function(){var v=document.getElementById("sharevid");if(!v)return;'
         + 'function tp(){try{var p=v.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}'
