@@ -1343,6 +1343,14 @@ function ptab(el,which){
 var _shareTitle="";var _shareUrl="";var _shareThumb="";
 /* 海報用「而家播到嗰格」：Stream 片記 uid＋秒數（0.01 秒精度，?time= 攞嗰一刻嘅縮圖）；mp4 直接截 video element 嗰格 */
 var _shareUid="",_shareTime=0,_shareFrame="";
+/* 廣告只限 admin 分享：而家 code 入面未有 admin role 呢個概念，所以用登入 email 認 admin。
+   ADMIN_EMAILS 入面加邊個 email，邊個登入分享先會帶廣告；未加之前，任何人分享都唔帶廣告。
+   江仔確認邊個 email 係 admin 之後，加喺呢度就得。 */
+var ADMIN_EMAILS=[];
+function isAdminSharer(){
+ try{ return !!(_user && _user.email && ADMIN_EMAILS.indexOf(String(_user.email).toLowerCase()) !== -1); }
+ catch(e){ return false; }
+}
 /* WhatsApp 原生分享 demo：預先攞定福滿庭廣告圖，分享嗰陣一次過送圖+文字，收訊息嗰邊喺 WhatsApp 入面直接見到廣告，唔使㩒 link */
 var _adFile=null;
 function prefetchAdFile(){
@@ -1374,7 +1382,7 @@ function openShareV(i){
  pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
  snapShareFrame(i,v); /* 記低播到邊：海報用嗰格做圖 */
  _shareOpen=true; /* 分享開住：feed 唔自動播 */
- prefetchAdFile(); /* 預先攞廣告圖，等陣 WhatsApp 原生分享唔使等 download */
+ if(isAdminSharer())prefetchAdFile(); /* 淨係 admin 先預先攞廣告圖 */
  _shareTitle=v.t||"講圈短片";
  var url;
  var sid=(v.stream&&v.uid)?v.uid:(v.id||"");
@@ -1390,6 +1398,7 @@ function openShareV(i){
  }
  url+="&others="+((_settings.shareOthers)?"1":"0");
  if(_shareUid&&_shareUid===sid&&_shareTime>0)url+="&ts="+_shareTime; /* WhatsApp/FB 張卡都用分享嗰一刻嘅圖 */
+ if(isAdminSharer())url+="&ad=1"; /* 淨係 admin 分享先帶廣告：share-card 嗰邊見到 &ad=1 先顯示廣告 */
  document.getElementById("sharelink").value=url;
  _shareUrl=url;try{_shareThumb=videoThumb(v)||"";}catch(_e){_shareThumb="";}if(!_shareThumb)_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
  document.getElementById("mask").classList.add("show");
@@ -1399,8 +1408,9 @@ function openShareV(i){
 function openShare(title){_shareTitle=title||"講圈短片";
  pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
  _shareOpen=true; /* 分享開住：feed 唔自動播 */
- prefetchAdFile();
+ if(isAdminSharer())prefetchAdFile();
  var url=location.origin+"/api/share-card?t="+encodeURIComponent(_shareTitle);
+ if(isAdminSharer())url+="&ad=1"; /* 淨係 admin 分享先帶廣告 */
  document.getElementById("sharelink").value=url;
  _shareUrl=url;_shareThumb="https://picsum.photos/seed/kongtalk/800/450";
  document.getElementById("mask").classList.add("show");
@@ -1431,7 +1441,7 @@ function logShare(channel){
 async function shareWaWithAd(){
  var txt=shareText();
  try{
-  if(navigator.share){
+  if(navigator.share && isAdminSharer()){ /* 淨係 admin 先用原生分享送廣告圖；普通用戶跌返 wa.me 文字分享，片 preview 照有 */
    var file=_adFile;
    if(!file){
     var r=await fetch(location.origin+"/assets/fumanting-lamb-pot.jpg");
