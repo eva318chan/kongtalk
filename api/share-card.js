@@ -17,6 +17,48 @@ function piaohaoOf(id) {
   return (String(h1).padStart(10, "0") + String(h2).padStart(10, "0")).slice(0, 12);
 }
 
+// 分享 link 點擊追蹤（自家追蹤，唔用 Bitly）：真人㩒入嚟先記一次，爬蟲攞 preview 唔計。
+// 國家／城市由 Vercel geo header 嚟（x-vercel-ip-country 等）；唔存 IP 地址。
+var BOT_RE = /(facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|telegrambot|whatsapp|googlebot|bingbot|duckduckbot|baiduspider|yandexbot|applebot|petalbot|bytespider|ccbot|anthropic-ai|gptbot|claudebot|headlesschrome|phantomjs|bot|crawler|spider|preview|fetch|monitor|uptime)/i;
+function isBotUA(ua) { return BOT_RE.test(ua || ""); }
+function deviceOf(ua) {
+  ua = ua || "";
+  if (/ipad|tablet/i.test(ua)) return "tablet";
+  if (/mobile|android|iphone|ipod/i.test(ua)) return "mobile";
+  return "desktop";
+}
+async function logShareClick(req, vkey, title) {
+  var h = req.headers || {};
+  var ua = String(h["user-agent"] || "");
+  if (isBotUA(ua)) return; /* 爬蟲攞 preview 唔計，唔係真人㩒 */
+  var country = String(h["x-vercel-ip-country"] || "").slice(0, 2).toUpperCase();
+  var region = String(h["x-vercel-ip-country-region"] || "").slice(0, 10);
+  var city = "";
+  try { city = decodeURIComponent(String(h["x-vercel-ip-city"] || "")); } catch (e) { city = String(h["x-vercel-ip-city"] || ""); }
+  city = city.slice(0, 60);
+  var body = {
+    p_vkey: String(vkey || "").slice(0, 80),
+    p_title: String(title || "").slice(0, 60),
+    p_country: country || null,
+    p_region: region || null,
+    p_city: city || null,
+    p_device: deviceOf(ua),
+    p_referrer: String(h.referer || h.referrer || "").slice(0, 500),
+    p_user_agent: ua.slice(0, 500)
+  };
+  var work = fetch(SB_URL + "/rest/v1/rpc/log_share_click", {
+    method: "POST",
+    headers: {
+      apikey: SB_ANON, Authorization: "Bearer " + SB_ANON,
+      "Content-Type": "application/json",
+      "Accept-Profile": "ktalk", "Content-Profile": "ktalk"
+    },
+    body: JSON.stringify(body)
+  }).then(function (r) { return r.text().catch(function () { return ""; }); }).catch(function () { });
+  /* 記 click 唔可以拖慢開頁：800ms 內未完成就唔等，照出頁。未行 SQL migration 嗰陣 RPC 未有，呢度靜靜失敗，頁照出。 */
+  await Promise.race([work, new Promise(function (res) { setTimeout(res, 800); })]);
+}
+
 // Demo 短片資料（同 index.html VIDEOS 頭 7 條一致，供 ?v=dN 短連結還原標題/縮圖用）
 var DEMO = {
   d1: { t: "各位退休嘅老友，聽我講！", p: "100000+次播放", av: "樂", src: "https://samplelib.com/mp4/sample-30s.mp4" },
@@ -63,6 +105,8 @@ module.exports = async (req, res) => {
     if (isFinite(ts) && ts > 0 && ts < 100000) img += "?time=" + ts + "s"; /* 嗰一刻嘅縮圖 */
     vsrc = "https://videodelivery.net/" + uid + "/manifest/video.m3u8"; /* HLS：mp4 下載多數冇開（404），m3u8 先係穩陣 */
   }
+  /* 真人㩒入先記一次 click：vkey 冇就用標題做 key，等舊式 ?t= link 都計到 */
+  try { await logShareClick(req, vkey || ("t:" + t), t); } catch (e) { /* 記唔到都照出頁 */ }
   // 直接 mp4 連結（有先會加 og:video，Facebook 先會內嵌播放條片）
   if (!/^https:\/\//i.test(vsrc)) vsrc = "";
   // 只接受 https 圖片，防 XSS / open redirect
