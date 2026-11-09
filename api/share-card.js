@@ -101,6 +101,12 @@ module.exports = async (req, res) => {
       '<a href="https://ktalk.hk/#u=' + ownerPiao + '" style="display:block;text-align:center;background:#fff;color:#07c160;' +
       'border:1px solid #07c160;border-radius:28px;padding:14px;margin-top:12px;text-decoration:none;font-size:16px;font-weight:700">睇埋我其他片</a>';
   }
+  // 分享頁底部廣告（測試）：福滿庭羊腩煲海報，置於「睇埋我其他片」掣之下
+  var ad =
+    '<div style="margin-top:22px;border-top:1px solid #eee;padding-top:14px">' +
+    '<div style="font-size:11px;color:#aaa;text-align:center;margin-bottom:8px">廣告</div>' +
+    '<img src="https://ktalk.hk/assets/fumanting-lamb-pot.jpg" style="width:100%;display:block;border-radius:10px" alt="福滿庭 爆香羊腩煲">' +
+    "</div>";
   var html =
     '<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -127,6 +133,7 @@ module.exports = async (req, res) => {
     '<div style="font-size:17px;font-weight:700">' + esc(t) + "</div>" +
     '<div style="color:#888;font-size:13px;margin-top:6px">' + esc(desc) + "</div>" +
     btn +
+    ad +
     (vsrc && !uid
       ? '<script>(function(){var v=document.getElementById("sharevid");if(!v)return;'
         + 'function tp(){try{var p=v.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}'
