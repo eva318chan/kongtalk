@@ -1412,6 +1412,21 @@ function shareText(){
  if(typeof _settings!=="undefined"&&_settings.shareOthers)s+="\n\n睇埋我其他片："+profileURL();
  return s;
 }
+/* 分享追蹤：撳分享掣嗰陣記一次（邊條片、邊個渠道），等報告有真嘅分享數。記唔到都唔阻分享。 */
+function shareVkey(){
+ try{
+  var u=new URL(document.getElementById("sharelink").value,location.origin);
+  var v=u.searchParams.get("v");if(v)return v;
+  var t=u.searchParams.get("t");if(t)return "t:"+t;
+ }catch(e){}
+ if(_shareUid)return _shareUid;
+ return "t:"+(_shareTitle||"講圈短片");
+}
+function logShare(channel){
+ try{
+  fetch("/api/log-share",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({vkey:shareVkey(),title:_shareTitle||"講圈短片",channel:channel})}).catch(function(){});
+ }catch(e){}
+}
 /* WhatsApp 分享 demo：手機支援原生分享就一次過送廣告圖+文字（圖做相、文字做 caption，入面有條片 link），收訊息嗰邊喺 WhatsApp 入面直接見到廣告，唔使㩒 link。唔支援／攞唔到圖／用戶以外嘅錯誤，就跌返舊做法 wa.me 文字 link。用戶自己取消分享（AbortError）唔跌返，免得彈多次。 */
 async function shareWaWithAd(){
  var txt=shareText();
@@ -1428,15 +1443,17 @@ async function shareWaWithAd(){
    var data={files:[file],text:txt,title:_shareTitle||"講圈短片"};
    if(navigator.canShare&&!navigator.canShare(data))throw new Error("canShare false");
    await navigator.share(data);
+   logShare("wa"); /* 原生分享成功先計，取消唔計 */
    return;
   }
  }catch(e){if(e&&e.name==="AbortError")return;}
+ logShare("wa");
  window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank");
 }
 function shareTo(which){
  if(which==="wa"){shareWaWithAd();return;}
- else if(which==="fb") window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(document.getElementById("sharelink").value)+"&quote="+encodeURIComponent("講圈 — 香港人講嘢嘅短片平台：「"+_shareTitle+"」"),"_blank");
- else if(which==="wx") openWx();
+ else if(which==="fb"){logShare("fb");window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(document.getElementById("sharelink").value)+"&quote="+encodeURIComponent("講圈 — 香港人講嘢嘅短片平台：「"+_shareTitle+"」"),"_blank");}
+ else if(which==="wx"){logShare("wx");openWx();}
 }
 /* 微信分享：複製連結為主，QR code 按需展開 */
 /* 微信分享（學淘寶）：一撳即 copy，大掣跳去微信 App 貼上 */
