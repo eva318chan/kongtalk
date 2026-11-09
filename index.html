@@ -1351,12 +1351,6 @@ function isAdminSharer(){
  try{ return !!(_user && _user.email && ADMIN_EMAILS.indexOf(String(_user.email).toLowerCase()) !== -1); }
  catch(e){ return false; }
 }
-/* WhatsApp 原生分享 demo：預先攞定福滿庭廣告圖，分享嗰陣一次過送圖+文字，收訊息嗰邊喺 WhatsApp 入面直接見到廣告，唔使㩒 link */
-var _adFile=null;
-function prefetchAdFile(){
- if(_adFile||!window.fetch)return;
- fetch(location.origin+"/assets/fumanting-lamb-pot.jpg").then(function(r){if(!r.ok)throw new Error("ad "+r.status);return r.blob();}).then(function(b){_adFile=new File([b],"fumanting-lamb-pot.jpg",{type:b.type||"image/jpeg"});}).catch(function(){_adFile=null;});
-}
 function snapShareFrame(i,v){
  _shareUid="";_shareTime=0;_shareFrame="";
  try{
@@ -1382,7 +1376,6 @@ function openShareV(i){
  pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
  snapShareFrame(i,v); /* 記低播到邊：海報用嗰格做圖 */
  _shareOpen=true; /* 分享開住：feed 唔自動播 */
- prefetchAdFile(); /* 測試期間：全部分享都帶廣告，預先攞圖 */
  _shareTitle=v.t||"講圈短片";
  var url;
  var sid=(v.stream&&v.uid)?v.uid:(v.id||"");
@@ -1408,7 +1401,6 @@ function openShareV(i){
 function openShare(title){_shareTitle=title||"講圈短片";
  pausePlayingForShare(); /* 開分享即 pause 播緊嘅片 */
  _shareOpen=true; /* 分享開住：feed 唔自動播 */
- prefetchAdFile();
  var url=location.origin+"/api/share-card?t="+encodeURIComponent(_shareTitle);
  url+="&ad=1"; /* 測試期間：全部分享都帶 &ad=1 */
  document.getElementById("sharelink").value=url;
@@ -1437,28 +1429,12 @@ function logShare(channel){
   fetch("/api/log-share",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({vkey:shareVkey(),title:_shareTitle||"講圈短片",channel:channel})}).catch(function(){});
  }catch(e){}
 }
-/* WhatsApp 分享 demo：手機支援原生分享就一次過送廣告圖+文字（圖做相、文字做 caption，入面有條片 link），收訊息嗰邊喺 WhatsApp 入面直接見到廣告，唔使㩒 link。唔支援／攞唔到圖／用戶以外嘅錯誤，就跌返舊做法 wa.me 文字 link。用戶自己取消分享（AbortError）唔跌返，免得彈多次。 */
-async function shareWaWithAd(){
- var txt=shareText();
- try{
-  if(navigator.share){ /* 測試期間：全部分享都用原生分享送廣告圖 */
-   var file=_adFile;
-   if(!file){
-    var r=await fetch(location.origin+"/assets/fumanting-lamb-pot.jpg");
-    if(!r.ok)throw new Error("ad "+r.status);
-    var b=await r.blob();
-    file=new File([b],"fumanting-lamb-pot.jpg",{type:b.type||"image/jpeg"});
-    _adFile=file;
-   }
-   var data={files:[file],text:txt,title:_shareTitle||"講圈短片"};
-   if(navigator.canShare&&!navigator.canShare(data))throw new Error("canShare false");
-   await navigator.share(data);
-   logShare("wa"); /* 原生分享成功先計，取消唔計 */
-   return;
-  }
- }catch(e){if(e&&e.name==="AbortError")return;}
+/* WhatsApp 分享（2026-11-10 改做 wa.me 文字 link，唔再用原生分享附廣告圖）：
+   而家 og:image 已經係方形合併圖（片圖＋廣告），用返文字 link，WhatsApp 會自己生成 preview 卡（方形圖＋標題＋簡介），
+   效果同手動 copy link 貼入 WhatsApp 一模一樣，仲可以成張卡㩒入去。之前原生分享附圖嗰個做法會令條 link 變咗純文字、冇 preview 卡，所以唔用。 */
+function shareWaWithAd(){
  logShare("wa");
- window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank");
+ window.open("https://wa.me/?text="+encodeURIComponent(shareText()),"_blank");
 }
 function shareTo(which){
  if(which==="wa"){shareWaWithAd();return;}
