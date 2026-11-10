@@ -22,17 +22,18 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#e8e8e8;color:#222;font-size:16px}
 #app{max-width:480px;margin:0 auto;background:#f5f5f5;min-height:100vh;position:relative;padding-bottom:70px}
+#app.home-on{padding-bottom:0}
 .topbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;font-size:19px;font-weight:700;text-align:center}
 .topbar .demo{display:inline-block;font-size:11px;font-weight:400;background:#ff9500;color:#fff;border-radius:8px;padding:2px 8px;margin-left:8px;vertical-align:middle}
 .screen{display:none}
 .screen.active{display:block}
 /* ---------- 首页视频卡片 ---------- */
 /* ---------- 首頁：沉浸式上推 feed ---------- */
-#s-home{position:relative}
-#feed{height:calc(100vh - 70px);height:calc(100dvh - 70px);overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;background:#000}
+#s-home{position:relative;height:100dvh;overflow:hidden}
+#feed{height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;background:#000;overscroll-behavior:contain}
 #feed::-webkit-scrollbar{display:none}
-.vcard{position:relative;height:100%;margin:0;border-radius:0;overflow:hidden;box-shadow:none;scroll-snap-align:start;scroll-snap-stop:always;background:#000}
-.vctrl{position:absolute;left:0;right:0;bottom:0;z-index:6;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:10px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+.vcard{position:relative;height:100dvh;margin:0;border-radius:0;overflow:hidden;box-shadow:none;scroll-snap-align:start;scroll-snap-stop:always;background:#000}
+.vctrl{position:absolute;left:0;right:0;bottom:64px;z-index:6;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:10px 8px calc(8px + env(safe-area-inset-bottom,0px))}
 .vcrow{display:flex;align-items:center;gap:6px}
 .vbtn{pointer-events:auto;flex:0 0 auto;width:36px;height:36px;border:0;background:transparent;padding:8px;cursor:pointer;opacity:.92;border-radius:50%}
 .vbtn svg{width:100%;height:100%;fill:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));display:block}
@@ -41,7 +42,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .vfill{position:absolute;left:0;bottom:10px;height:3px;width:0;background:#07c160;border-radius:2px}
 .vknob{position:absolute;bottom:11px;left:0;width:11px;height:11px;margin-left:-5px;border-radius:50%;background:#07c160;box-shadow:0 1px 4px rgba(0,0,0,.5)}
 .vtime{flex:0 0 auto;color:#fff;font-size:11px;text-shadow:0 1px 3px rgba(0,0,0,.8);white-space:nowrap}
-.vcard.has-ctrl .vov{padding-bottom:64px}
+.vcard.has-ctrl .vov{padding-bottom:124px}
 .vcatch{position:absolute;inset:0;z-index:2;touch-action:pan-y;cursor:pointer}
 /* 可撳元素：mouse 游標＋hover 反饋（桌面版唔使估邊度撳得） */
 .vwrap,.rbtn,.tab,.mi,.pill,button{cursor:pointer}
@@ -65,20 +66,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .bigplay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;pointer-events:none}
 .bigplay::after{content:"";border-left:22px solid #fff;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
 .vwrap.playing .bigplay{display:none}
-.vov{position:absolute;left:0;right:0;bottom:0;padding:70px 84px 22px calc(20px + env(safe-area-inset-left,0px));background:linear-gradient(transparent,rgba(0,0,0,.72));pointer-events:none;z-index:4}
+.vov{position:absolute;left:0;right:0;bottom:0;padding:70px 84px 76px calc(20px + env(safe-area-inset-left,0px));background:linear-gradient(transparent,rgba(0,0,0,.72));pointer-events:none;z-index:4}
 .vtitle{font-size:17px;font-weight:700;color:#fff;line-height:1.45;text-shadow:0 1px 6px rgba(0,0,0,.65);margin-bottom:10px}
 .htag{color:#8fd8ff;font-weight:700;cursor:pointer;pointer-events:auto}
 .htag:active{opacity:.65}
-.tagbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#16283a;color:#fff;font-size:15px;font-weight:700;position:sticky;top:0;z-index:6}
+.tagbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#16283a;color:#fff;font-size:15px;font-weight:700;position:absolute;top:0;left:0;right:0;z-index:6}
 .tagbar .cnt{font-weight:400;font-size:13px;opacity:.75}
 .tagbar .clear{margin-left:auto;background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:12px;padding:5px 12px;font-size:13px;cursor:pointer}
 .vauthor{display:flex;align-items:center;gap:8px;color:#fff;font-size:14px}
 .vauthor .avatar{width:32px;height:32px;font-size:15px;flex-shrink:0}
 .vplays{opacity:.75;font-size:12px}
-.vrail{position:absolute;right:10px;bottom:110px;display:flex;flex-direction:column;gap:14px;z-index:5}
-.rbtn{width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.vrail{position:absolute;right:10px;bottom:178px;display:flex;flex-direction:column;gap:12px;z-index:5}
+.rbtn{position:relative;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 .rbtn small{font-size:10px}
 .rbtn:active{transform:scale(.93)}
+/* ---------- 右側懸浮操作列：讚＋關注（2026-11-11） ---------- */
+.rbtn.like svg{width:30px;height:30px;fill:currentColor;display:block}
+.rbtn.like .cnt{font-size:11px;font-weight:700;line-height:1}
+.rbtn.like.liked{color:#fe2c55}
+.rbtn.like.liked svg{filter:drop-shadow(0 0 6px rgba(254,44,85,.6))}
+@keyframes likepop{0%{transform:scale(1)}30%{transform:scale(1.45)}60%{transform:scale(.92)}100%{transform:scale(1)}}
+.rbtn.like.pop svg{animation:likepop .45s cubic-bezier(.2,1.6,.4,1)}
+.burst-heart{position:absolute;bottom:44px;left:18px;color:#fe2c55;font-size:16px;pointer-events:none;animation:burstUp .9s ease-out forwards}
+@keyframes burstUp{0%{opacity:1;transform:translateY(0) scale(.7)}100%{opacity:0;transform:translateY(-48px) scale(1.3)}}
+.rbtn.av{background:transparent;border:0;padding:0;overflow:visible}
+.rbtn.av .plus{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:#fe2c55;color:#fff;font-size:14px;font-weight:700;line-height:20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.rbtn.av .plus.on{background:#07c160}
+/* ---------- 開聲提示（2026-11-11） ---------- */
+#soundhint{position:absolute;top:64px;left:50%;transform:translateX(-50%);z-index:8;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:24px;padding:10px 18px;font-size:15px;font-weight:700;display:none;align-items:center;gap:8px;cursor:pointer;white-space:nowrap;animation:hintpulse 1.6s ease-in-out infinite}
+#soundhint.show{display:flex}
+@keyframes hintpulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.07)}}
 .feedlogo{position:absolute;top:14px;left:calc(20px + env(safe-area-inset-left,0px));z-index:6;color:#fff;font-weight:800;font-size:18px;text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none}
 .feedlogo small{font-size:10px;font-weight:400;opacity:.85;margin-left:6px;border:1px solid rgba(255,255,255,.55);padding:2px 6px;border-radius:8px}
 /* ---------- 頭像（共用圓形） ---------- */
@@ -306,6 +323,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="screen active" id="s-home">
   <div class="feedlogo">講圈<small>DEMO</small></div>
   <div id="tagbar" style="display:none"></div>
+  <div id="soundhint" onclick="unlockSound()">🔊 點擊開啟聲音</div>
   <div id="feed"></div>
 </div>
 
@@ -712,6 +730,56 @@ var CREATORS=[
  {n:"健康養生堂",av:"健",s:"45萬粉絲 · 890個作品",f:false}
 ];
 var plays=134, shares=46, _shareBase=0;
+/* ---------- 讚／關注（右側懸浮列，2026-11-11）：讚數由播放數推算（示範基數）＋自己嗰下記 localStorage；關注只記本地 ---------- */
+var _likes={};try{_likes=JSON.parse(localStorage.getItem("kt_likes")||"{}")||{};}catch(e){_likes={};}
+var _railFollows={};try{_railFollows=JSON.parse(localStorage.getItem("kt_follows")||"{}")||{};}catch(e){_railFollows={};}
+function likeKey(v){return v.uid||v.id||("t:"+(v.t||""));}
+function likeBase(v){return Math.max(12,Math.round(vPlaysNum(v)*0.08));}
+function likeCount(v){return likeBase(v)+(_likes[likeKey(v)]?1:0);}
+function isLiked(v){return !!_likes[likeKey(v)];}
+function toggleRailLike(btn,i,ev){if(ev)ev.stopPropagation();var v=VIDEOS[i];if(!v)return;var k=likeKey(v);if(_likes[k])delete _likes[k];else _likes[k]=1;try{localStorage.setItem("kt_likes",JSON.stringify(_likes));}catch(e){}btn.classList.toggle("liked",!!_likes[k]);var c=btn.querySelector(".cnt");if(c)c.textContent=likeCount(v);btn.classList.remove("pop");void btn.offsetWidth;btn.classList.add("pop");if(_likes[k])likeBurst(btn);}
+function likeBurst(btn){try{for(var n=0;n<3;n++){var s=document.createElement("span");s.className="burst-heart";s.textContent="❤";s.style.left=(10+n*13)+"px";s.style.animationDelay=(n*0.07)+"s";btn.appendChild(s);(function(el){setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},1000);})(s);}}catch(e){}}
+function railFollowKey(v){return "a:"+(v.a||"");}
+function isRailFollowed(v){return !!_railFollows[railFollowKey(v)];}
+function toggleRailFollow(btn,i,ev){if(ev)ev.stopPropagation();var v=VIDEOS[i];if(!v||!v.a)return;var k=railFollowKey(v);if(_railFollows[k])delete _railFollows[k];else _railFollows[k]=1;try{localStorage.setItem("kt_follows",JSON.stringify(_railFollows));}catch(e){}var p=btn.querySelector(".plus");if(p){p.textContent=_railFollows[k]?"✓":"+";p.classList.toggle("on",!!_railFollows[k]);}}
+/* ---------- 智能預載＋清理（2026-11-11）：睇 N 嗰陣預載 N+1 頭 3 秒＋封面；離開嗰陣拆走遠處卡嘅播放器／video 元素，只留封面 ---------- */
+var _curIdx=-1,_preloaded={};
+function cardWrap(i){return document.querySelector('.vwrap[data-i="'+i+'"]');}
+function preloadNext(i){
+ var v=VIDEOS[i];if(!v||_preloaded[i])return;_preloaded[i]=1;
+ try{
+  if(v.stream&&v.uid){var im=new Image();im.src=streamThumb(v.uid);}
+  else if(v.kind==="yt"&&v.ytId){var im2=new Image();im2.src="https://i.ytimg.com/vi/"+encodeURIComponent(v.ytId)+"/hqdefault.jpg";}
+  else if(v.src){
+   var w=cardWrap(i);
+   if(w&&!w.querySelector("video"))restoreMedia(w,v);
+   var vd=w&&w.querySelector("video");
+   if(vd){vd.preload="auto";try{vd.load();}catch(e){}}
+  }
+ }catch(e){}
+}
+function destroyFarMedia(cur){
+ document.querySelectorAll("#feed .vwrap").forEach(function(w){
+  var i=+w.getAttribute("data-i");if(isNaN(i)||Math.abs(i-cur)<=1)return;
+  var v=VIDEOS[i];if(!v)return;
+  try{
+   w.classList.remove("playing"); /* 唔好留低 playing class，否則 pauseAllV 會還原返條片 */
+   if(w._sp||w._ytp||w.querySelector("iframe"))stopMedia(w);
+   var vd=w.querySelector("video");
+   if(vd&&!v.stream&&v.kind!=="yt"){
+    try{vd.pause();}catch(e){}
+    var img=document.createElement("img");img.className="sthumb";img.src=videoThumb(v);
+    img.style.cssText="width:100%;height:100%;object-fit:cover;display:block";
+    if(vd.parentNode)vd.parentNode.replaceChild(img,vd);
+   }else if(vd){try{vd.pause();}catch(e){}}
+  }catch(e){}
+ });
+}
+function onActiveVideo(idx){
+ if(idx===_curIdx)return;_curIdx=idx;
+ preloadNext(idx+1);
+ destroyFarMedia(idx);
+}
 
 function streamThumb(uid){return "https://videodelivery.net/"+uid+"/thumbnails/thumbnail.jpg";}
 function videoThumb(v){
@@ -754,10 +822,15 @@ function renderFeed(){
    +'<div class="bigplay"></div></div>'
    +'<div class="vov"><div class="vtitle">'+(v.isLive?'<span class="livebadge">🔴 直播中</span>':"")+linkHashtags(v.t)+'</div>'
    +'<div class="vauthor"><div class="avatar">'+escHtml(v.av)+'</div><span>'+escHtml(v.a)+'</span><span class="vplays">'+v.p+'</span>'+(v.isLive?'<span class="liveviewers" data-slot="'+escHtml(v.id)+'">👁 --</span>':"")+'</div></div>'
-   +'<div class="vrail"><button class="rbtn" onclick="openShareV('+i+')">📤<small>分享</small></button></div></div>';
+   +'<div class="vrail">'
+   +'<button class="rbtn av" onclick="toggleRailFollow(this,'+i+',event)" aria-label="關注作者"><span class="avatar" style="width:48px;height:48px;font-size:19px;border:2px solid #fff">'+escHtml(v.av)+'</span><span class="plus'+(isRailFollowed(v)?' on':'')+'">'+(isRailFollowed(v)?'✓':'+')+'</span></button>'
+   +'<button class="rbtn like'+(isLiked(v)?' liked':'')+'" onclick="toggleRailLike(this,'+i+',event)" aria-label="點讚"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"/></svg><span class="cnt">'+likeCount(v)+'</span></button>'
+   +'<button class="rbtn" onclick="openShareV('+i+')">📤<small>分享</small></button>'
+   +'</div></div>';
   if((i+1)%5===0) h+='<div class="vcard adslot"><div class="adph">📢 廣告預留位<div class="adsub">正式版可接 Google AdSense／Pangle 信息流廣告</div></div></div>';
  });
  document.getElementById("feed").innerHTML=h;
+ _curIdx=-1;_preloaded={}; /* feed 重 render：預載／清理狀態重置，等 observer 再觸發 */
  initFeedObserver();
 }
 function stopMedia(w){
@@ -821,6 +894,7 @@ function playVwrap(w){
  var i=+w.getAttribute("data-i"),v=VIDEOS[i];
  var _tp=_tapPlay;_tapPlay=false; /* 標記消耗：今次係咪用戶親手撳播 */
  bumpPlay(v);
+ if(v&&!v.stream&&v.kind!=="yt"&&!w.querySelector("video"))restoreMedia(w,v); /* 之前被預載清理拆走咗 <video> 嘅卡（得返封面圖），播之前還原返 */
  if(v&&(v.kind==="yt"||v.kind==="cflive")){
   /* 官方直播位：YouTube 用官方 IFrame API（onReady 先 play，穩陣）；Cloudflare 直播用 iframe（靜音自動播；撳片身暫停；直播唔會 ended，唔觸發自動播下一條） */
   var im0=w.querySelector("iframe");
@@ -837,7 +911,7 @@ function playVwrap(w){
       width:"100%",height:"100%",videoId:v.ytId,
       playerVars:{autoplay:1,controls:0,rel:0,playsinline:1,fs:0,disablekb:1},
       events:{
-       onReady:function(e){try{e.target.mute();e.target.playVideo();}catch(_){}},
+       onReady:function(e){try{if(_soundUnlocked){e.target.unMute();}else{e.target.mute();}e.target.playVideo();}catch(_){}},
        onStateChange:function(e){try{if(e.data===1)w.classList.add("playing");}catch(_){}}
       }
      });
@@ -866,6 +940,7 @@ function playVwrap(w){
   w.appendChild(lfs);
   /* 觀眾統計：播緊先 join presence channel，停播即走，人數實時更新 */
   w._liveCh=livePresence(v.id);
+  showSoundHint();
   return;
  }
  if(v&&v.stream&&v.uid){
@@ -882,8 +957,9 @@ function playVwrap(w){
   if(window.Stream){try{wireStreamSDK(w,im,i,_wantSound)}catch(e){}}
  }else{
   var vd=w.querySelector("video");
-  if(vd){vd.muted=false;vd.onended=function(){playNextVideo(i);};var pr=vd.play();if(pr&&pr.catch)pr.catch(function(){vd.muted=true;vd.play().catch(function(){});});}
+  if(vd){vd.muted=!_wantSound;vd.onended=function(){playNextVideo(i);};var pr=vd.play();if(pr&&pr.catch)pr.catch(function(){vd.muted=true;vd.play().catch(function(){});});}
  }
+ showSoundHint();
 }
 /* Stream 自家控制列：播/停＋進度＋時間＋音量＋全屏；ended 經 SDK 可靠觸發自動播下一條 */
 var SVG_PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
@@ -907,9 +983,24 @@ function toggleTheater(w){
  syncTheaterIcons();
 }
 document.addEventListener("keydown",function(e){if(e.key==="Escape"||e.keyCode===27){document.querySelectorAll(".vwrap.theater").forEach(function(w){toggleTheater(w);});}});
-/* 全站音量心智：_wantSound 用戶想唔想有聲（撳過喇叭掣會記住；hover 裝置預設唔想）；_tapPlay 標記今次係咪用戶親手撳播（手勢可試聲） */
-var _wantSound=true,_tapPlay=false;
-try{if(window.matchMedia&&matchMedia("(hover:hover)").matches)_wantSound=false;}catch(e){}
+/* 全站音量心智（2026-11-11）：預設靜音播，第一條片靜音＋出「點擊開啟聲音」提示；用戶撳一次之後先全站有聲。_tapPlay 標記今次係咪用戶親手撳播（手勢可試聲） */
+var _wantSound=false,_tapPlay=false,_soundUnlocked=false;
+/* 開聲解鎖（2026-11-11）：撳一次「點擊開啟聲音」／任何音量掣，即刻全站有聲 */
+function unmuteWrap(w){
+ var i=+w.getAttribute("data-i"),v=VIDEOS[i];if(!v)return;
+ try{
+  if(v&&(v.kind==="yt"||v.kind==="cflive")){setLiveMuted(w,false);}
+  else if(v&&v.stream&&w._sp){try{w._sp.muted=false;if(w._syncVol)w._syncVol();}catch(e){}}
+  else{var vd=w.querySelector("video");if(vd){vd.muted=false;var pr=vd.play();if(pr&&pr.catch)pr.catch(function(){vd.muted=true;});}}
+ }catch(e){}
+}
+function unlockSound(){
+ if(_soundUnlocked)return;_soundUnlocked=true;_wantSound=true;
+ var h=document.getElementById("soundhint");if(h)h.classList.remove("show");
+ var w=document.querySelector(".vwrap.playing");
+ if(w)unmuteWrap(w);
+}
+function showSoundHint(){if(_soundUnlocked)return;var h=document.getElementById("soundhint");if(h)h.classList.add("show");}
 function wireStreamSDK(w,im,i,trySound){
  var player=Stream(im);w._sp=player;
  /* 開播意圖：想要聲就試有聲（唔得就停低等撳，唔退靜音）；想要靜音就直接靜音播 */
@@ -938,7 +1029,7 @@ function wireStreamSDK(w,im,i,trySound){
  player.addEventListener("ended",function(){playNextVideo(i);});
  pp.addEventListener("click",function(e){e.stopPropagation();togglePlay(w);});
  vol.addEventListener("click",function(e){e.stopPropagation();try{
-  player.muted=!player.muted;_wantSound=!player.muted;setVol();
+  player.muted=!player.muted;if(!player.muted){unlockSound();}else{_wantSound=false;}setVol();
  }catch(_){}});
  fsb.addEventListener("click",function(e){e.stopPropagation();try{toggleTheater(w);}catch(_){}});
  function seekEv(e){try{e.preventDefault();e.stopPropagation();var r=bar.getBoundingClientRect();var x=e.touches?e.touches[0].clientX:e.clientX;var f=Math.min(1,Math.max(0,(x-r.left)/r.width));var d=player.duration||0;if(d>0)player.currentTime=f*d;upd();}catch(_){}}
@@ -1016,6 +1107,7 @@ function setLiveMuted(w,muted){
   else if(v&&v.kind==="cflive"&&w._sp){w._sp.muted=muted;}
  }catch(e){}
  _wantSound=!muted;
+ if(!muted)unlockSound();
 }
 function togglePlay(w){
  var i=+w.getAttribute("data-i"),v=VIDEOS[i];
@@ -1040,7 +1132,9 @@ function initFeedObserver(){
   if(!best||br<0.5)return;
   if(best.classList.contains("adslot")){pauseAllV();return;}
   var w=best.querySelector(".vwrap");
-  if(w)playVwrap(w);
+  if(!w)return;
+  onActiveVideo(+w.getAttribute("data-i"));
+  playVwrap(w);
  },{root:feed,threshold:[0,0.5,0.75,1]});
  feed.querySelectorAll(".vcard").forEach(function(c){_feedObs.observe(c);});
 }
@@ -1333,6 +1427,8 @@ function go(id,tab){
  if(tab){document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on");});tab.classList.add("on");}
  var tb=document.querySelector(".topbar");
  if(tb)tb.style.display=(id==="s-home")?"none":"";
+ var app=document.getElementById("app");
+ if(app)app.classList.toggle("home-on",id==="s-home");
  window.scrollTo(0,0);
 }
 function ptab(el,which){
@@ -2078,6 +2174,7 @@ function livePresence(slot){
  try{await loadCommunity();}catch(e){}
  try{await loadLiveSlots();}catch(e){} /* 官方直播位：置頂插入 feed */
  renderFeed();renderWorks();refreshSocial(); /* 保險：社群載入失敗／零片都出示範 feed，唔會留白 */
+ try{var _tb=document.querySelector(".topbar");if(_tb&&document.getElementById("s-home").classList.contains("active"))_tb.style.display="none";var _app=document.getElementById("app");if(_app)_app.classList.add("home-on");}catch(e){}
  handleDeepLink();
 })();
 
